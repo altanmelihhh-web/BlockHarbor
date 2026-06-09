@@ -1,4 +1,4 @@
-# Contributing to cwe-admin
+# Contributing to BlockHarbor
 
 Thanks for your interest! This is an early-stage project; the contributor
 workflow will be expanded in P7.
@@ -11,7 +11,7 @@ Two equally-supported paths — pick one:
 1. Install Apache + PHP 8.1+ + PostgreSQL 14+ + composer + node
 2. `composer install && npm install && npm run build`
 3. `vendor/bin/phinx migrate && vendor/bin/phinx seed:run`
-4. Configure Apache vhost (see `docker/apache/cwe-admin.conf.template`)
+4. Configure Apache vhost (see `docker/apache/blockharbor.conf.template`)
 
 ### Docker
 1. `docker compose up -d`
