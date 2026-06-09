@@ -1,4 +1,4 @@
-# cwe-admin
+# BlockHarbor
 
 Threat intelligence management panel — PostgreSQL-backed, Argon2id auth, hash-chained audit log, MIT licensed.
 
@@ -22,8 +22,8 @@ npm install && npm run build
 vendor/bin/phinx migrate
 vendor/bin/phinx seed:run
 
-# Install Apache vhost (see docker/apache/cwe-admin.conf.template),
-# then: sudo a2ensite cwe-admin && sudo systemctl reload apache2
+# Install Apache vhost (see docker/apache/blockharbor.conf.template),
+# then: sudo a2ensite blockharbor && sudo systemctl reload apache2
 # Browse: https://<host>:8443/login   (admin / changeme-p1-seed)
 ```
 
@@ -40,7 +40,7 @@ docker compose exec php vendor/bin/phinx seed:run
 ## Architecture
 
 See `docs/architecture.md` (added in P7) and the design spec at
-`docs/superpowers/specs/2026-06-07-cwe-admin-db-migration-design.md`.
+`docs/superpowers/specs/2026-06-07-blockharbor-db-migration-design.md`.
 
 ## License
 
