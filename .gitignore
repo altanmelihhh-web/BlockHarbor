@@ -1,0 +1,12 @@
+/vendor/
+/node_modules/
+/public/assets/*
+!/public/assets/.gitkeep
+/.env
+/.phpunit.cache/
+/tests/.coverage/
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.swp
