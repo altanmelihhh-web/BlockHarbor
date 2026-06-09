@@ -1,5 +1,8 @@
 # BlockHarbor
 
+<img width="1415" height="608" alt="image" src="https://github.com/user-attachments/assets/3ed8b6f6-e331-4744-8777-af8c4b0a05e3" />
+
+
 Threat intelligence management panel — PostgreSQL-backed, Argon2id auth, hash-chained audit log, MIT licensed.
 
 > **Status:** P1 (Foundation + Auth Core) in development. See implementation plans in `docs/superpowers/plans/`.
