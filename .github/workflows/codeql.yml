@@ -21,8 +21,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript, python]
-        # PHP CodeQL support is in beta — enable when stable
+        # JS only for now (P1 has minimal JS — app.js + workflow files).
+        # Python is not used in this project; PHP CodeQL is beta — both excluded.
+        # Will revisit when REST API + larger frontend exist (P5+).
+        language: [javascript]
 
     steps:
       - uses: actions/checkout@v4
@@ -31,9 +33,6 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
