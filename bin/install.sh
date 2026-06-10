@@ -220,9 +220,15 @@ if [[ -n "$CONFIG_FILE" ]]; then
 fi
 
 # ------------------------------------------------------------------ welcome
+start_transcript
+mark_step "welcome"
 section "BlockHarbor installer"
 [[ $UNATTENDED -eq 1 ]] && log "Running unattended (defaults used)."
 [[ $DRY_RUN -eq 1 ]] && warn "DRY-RUN: no changes will be made."
+
+# ------------------------------------------------------------------ pre-flight
+mark_step "preflight"
+preflight
 
 # =================================================================
 # PHASE 1 — Interactive Q&A (collect all inputs UP FRONT)
@@ -583,6 +589,29 @@ EOF
 )
 write_file "$VHOST_PATH" "$VHOST_CONTENT"
 run "a2ensite blockharbor"
+
+# Hardening config (Bundle 3 integration)
+if [[ -f "$INSTALL_DIR/etc/apache2/conf-available/blockharbor-hardening.conf" ]]; then
+    run "cp $INSTALL_DIR/etc/apache2/conf-available/blockharbor-hardening.conf /etc/apache2/conf-available/"
+    run "a2enconf blockharbor-hardening"
+fi
+
+# fail2ban templates (opt-in via package presence)
+if command -v fail2ban-client >/dev/null 2>&1; then
+    if [[ -f "$INSTALL_DIR/etc/fail2ban/filter.d/blockharbor.conf" ]]; then
+        run "cp $INSTALL_DIR/etc/fail2ban/filter.d/blockharbor.conf /etc/fail2ban/filter.d/"
+        run "cp $INSTALL_DIR/etc/fail2ban/jail.d/blockharbor.conf  /etc/fail2ban/jail.d/"
+        run "systemctl reload fail2ban || true"
+        ok "fail2ban filter + jail installed for BlockHarbor"
+    fi
+fi
+
+# logrotate template
+if [[ -f "$INSTALL_DIR/etc/logrotate.d/blockharbor" ]]; then
+    run "cp $INSTALL_DIR/etc/logrotate.d/blockharbor /etc/logrotate.d/"
+    ok "logrotate config installed"
+fi
+
 run "apachectl configtest"
 run "systemctl reload apache2"
 
