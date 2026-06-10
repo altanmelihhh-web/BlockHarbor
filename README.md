@@ -7,28 +7,52 @@ Threat intelligence management panel — PostgreSQL-backed, Argon2id auth, hash-
 
 > **Status:** P1 (Foundation + Auth Core) in development. See implementation plans in `docs/superpowers/plans/`.
 
-## Quick start
-
-### Native (Apache + host PostgreSQL — production default)
+## 🚀 One-command install (Ubuntu/Debian)
 
 ```bash
-# Pre-reqs on the host:
-#   - Apache 2.4 + mod_php8.1 (or PHP-FPM)
-#   - PostgreSQL 14+
-#   - composer 2, node 20+
-# Create cwe_admin DB + cwe_app user, set DB_PASSWORD in .env
-
-cp .env.example .env
-# edit .env: set DB_PASSWORD, APP_KEY, etc.
-composer install
-npm install && npm run build
-vendor/bin/phinx migrate
-vendor/bin/phinx seed:run
-
-# Install Apache vhost (see docker/apache/blockharbor.conf.template),
-# then: sudo a2ensite blockharbor && sudo systemctl reload apache2
-# Browse: https://<host>:8443/login   (admin / changeme-p1-seed)
+git clone https://github.com/altanmelihhh-web/BlockHarbor.git
+cd BlockHarbor
+sudo bash bin/install.sh
 ```
+
+That's it. The interactive installer asks for hostname, port, DB credentials,
+SMTP, and optional API keys (VirusTotal, GreyNoise, Shodan, AbuseIPDB, MaxMind,
+ipgeolocation, Slack webhook). It then:
+
+- ✅ Installs missing system packages (apache2, php8.1, postgresql-14, composer, node)
+- ✅ Creates DB (`blockharbor`) + 2 roles (`blockharbor_app` runtime, `blockharbor_migrator` DDL)
+- ✅ Generates `.env` with secure random `APP_KEY` + DB password (mode 0600, owner www-data)
+- ✅ Runs `composer install` + `npm install` + `npm run build`
+- ✅ Configures Apache vhost on chosen port (default 8443) with TLS, HSTS, CSP
+- ✅ Applies security hardening (mod_security headers, fail2ban filter+jail, logrotate)
+- ✅ Registers cron jobs (session/login cleanup, audit verify, feed fetch, CVE sync, backups)
+- ✅ Runs migrations + seeds default admin user
+- ✅ Prints access URL + admin credentials at the end
+
+Re-run safely — every step is idempotent.
+
+### Other install modes
+
+```bash
+sudo bash bin/install.sh --unattended                # use defaults; non-interactive
+sudo bash bin/install.sh --dry-run --unattended      # preview without writing
+sudo bash bin/install.sh --config /path/to/values.env # source variables from file
+sudo bash bin/install.sh --skip-packages             # skip apt; assume installed
+sudo bash bin/install.sh --skip-crons                # skip cron registration
+```
+
+### Day-2 operations
+
+```bash
+sudo bash bin/doctor.sh         # 12-check health report
+sudo bash bin/backup.sh         # pg_dump → /var/backups/blockharbor/
+sudo bash bin/restore.sh <file> # interactive picker or named file
+sudo bash bin/update.sh         # git pull + composer + npm + migrate + reload
+sudo bash bin/verify-install.sh # smoke test endpoints + security headers
+sudo bash bin/uninstall.sh      # full removal (or --keep-data)
+```
+
+## Alternative install paths
 
 ### Docker Compose (for evaluators / GitHub portability)
 
@@ -38,6 +62,17 @@ docker compose exec php composer install
 docker compose exec php vendor/bin/phinx migrate
 docker compose exec php vendor/bin/phinx seed:run
 # Browse: https://localhost:8443/login
+```
+
+### Manual (for advanced users — see [docs/deployment-apache.md](docs/deployment-apache.md))
+
+```bash
+cp .env.example .env
+# Edit .env: DB_PASSWORD, APP_KEY (openssl rand -hex 32), etc.
+composer install
+npm install && npm run build
+vendor/bin/phinx migrate && vendor/bin/phinx seed:run
+sudo a2ensite blockharbor && sudo systemctl reload apache2
 ```
 
 ## Architecture
