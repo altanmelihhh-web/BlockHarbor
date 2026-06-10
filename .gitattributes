@@ -1,0 +1,30 @@
+# Ensure consistent line endings across platforms
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+
+# Don't ship dev/build artifacts in archive exports
+.editorconfig         export-ignore
+.gitattributes        export-ignore
+.gitignore            export-ignore
+.github/              export-ignore
+tests/                export-ignore
+phpunit.xml           export-ignore
+phpstan.neon          export-ignore
+psalm.xml             export-ignore
+docs/superpowers/     export-ignore
+
+# Linguist hints
+*.php  linguist-detectable=true
+*.css  linguist-detectable=true
+*.js   linguist-detectable=true
+*.sh   linguist-detectable=true
+docs/superpowers/* linguist-documentation
