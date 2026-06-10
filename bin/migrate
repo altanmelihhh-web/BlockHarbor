@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+# BlockHarbor — Phinx migration runner (host mode)
+# Usage:
+#   ./bin/migrate                          # migrate to latest
+#   ./bin/migrate --dry-run                # show pending without applying
+#   ./bin/migrate status                   # show migration status
+#   ./bin/migrate rollback                 # rollback last migration
+#   ./bin/migrate rollback -t 0            # rollback to empty schema (DANGEROUS)
+#   ./bin/migrate create CreateUsers       # generate new migration file
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# Composer disallows running as root by default — installer needs it
+if [[ $EUID -eq 0 ]]; then
+    export COMPOSER_ALLOW_SUPERUSER=1
+fi
+
+# Default to `migrate` action if no args given
+if [[ $# -eq 0 ]]; then
+    exec vendor/bin/phinx migrate
+fi
+exec vendor/bin/phinx "$@"
