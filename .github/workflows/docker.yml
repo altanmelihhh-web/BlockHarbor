@@ -12,7 +12,24 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      has_dockerfile: ${{ steps.check.outputs.has_dockerfile }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [[ -f docker/Dockerfile ]]; then
+            echo "has_dockerfile=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_dockerfile=false" >> $GITHUB_OUTPUT
+            echo "::notice::docker/Dockerfile not present yet (P1 Task 3 lands it). Skipping image build."
+          fi
+
   build:
+    needs: check
+    if: needs.check.outputs.has_dockerfile == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
