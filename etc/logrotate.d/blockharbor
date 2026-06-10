@@ -1,0 +1,17 @@
+# BlockHarbor — logrotate config
+# Installed by bin/install.sh into /etc/logrotate.d/blockharbor
+
+/var/log/blockharbor/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        # No reload needed — Monolog opens fresh handle on next write
+        true
+    endscript
+}

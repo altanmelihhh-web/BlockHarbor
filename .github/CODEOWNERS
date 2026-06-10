@@ -1,0 +1,12 @@
+# Code owners for BlockHarbor
+# These users are automatically requested for review on PRs touching the matched paths.
+
+* @altanmelihhh-web
+
+# Security-sensitive paths
+/src/Auth/             @altanmelihhh-web
+/src/Audit/            @altanmelihhh-web
+/db/migrations/        @altanmelihhh-web
+/etc/fail2ban/         @altanmelihhh-web
+/SECURITY.md           @altanmelihhh-web
+/bin/install.sh        @altanmelihhh-web
