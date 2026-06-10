@@ -17,7 +17,7 @@ jobs:
     outputs:
       has_dockerfile: ${{ steps.check.outputs.has_dockerfile }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: check
         run: |
           if [[ -f docker/Dockerfile ]]; then
@@ -36,7 +36,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
