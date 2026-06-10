@@ -10,3 +10,6 @@
 .idea/
 .vscode/
 *.swp
+
+# Docker self-signed certs (never commit)
+/docker/ssl/
