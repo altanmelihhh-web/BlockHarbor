@@ -24,8 +24,8 @@ final class TotpService
 
     public function verify(string $secret, string $code): bool
     {
-        // Accept current ±1 period (≈30s) for clock drift.
-        return $this->totp($secret)->verify($code, leeway: $this->period);
+        // ±10s clock drift allowance (must be < period per otphp constraint).
+        return $this->totp($secret)->verify($code, leeway: 10);
     }
 
     public function provisioningUri(string $secret, string $label): string
