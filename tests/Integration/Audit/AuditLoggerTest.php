@@ -14,7 +14,7 @@ final class AuditLoggerTest extends DatabaseTestCase
         $logger->log('user.create', ['username' => 'alice'], actor: 'admin', ip: '10.0.0.1');
 
         $row = $this->db->pdo()->query(
-            "SELECT action, actor_username, ip_address::text AS ip,
+            "SELECT action, actor_username, host(ip_address) AS ip,
                     details, encode(prev_hash,'hex') AS ph, encode(entry_hash,'hex') AS eh
              FROM audit_log ORDER BY id DESC LIMIT 1"
         )->fetch(PDO::FETCH_ASSOC);
@@ -33,7 +33,7 @@ final class AuditLoggerTest extends DatabaseTestCase
         $logger->log('system.boot');
 
         $row = $this->db->pdo()->query(
-            "SELECT action, actor_username, ip_address::text AS ip FROM audit_log ORDER BY id DESC LIMIT 1"
+            "SELECT action, actor_username, host(ip_address) AS ip FROM audit_log ORDER BY id DESC LIMIT 1"
         )->fetch(PDO::FETCH_ASSOC);
 
         self::assertSame('system.boot', $row['action']);
