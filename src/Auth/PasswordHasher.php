@@ -12,11 +12,8 @@ final class PasswordHasher
 
     public function hash(string $plain): string
     {
-        $hash = password_hash($plain, PASSWORD_ARGON2ID, $this->options());
-        if ($hash === false) {
-            throw new \RuntimeException('Failed to hash password');
-        }
-        return $hash;
+        // PHP 8.1+ password_hash returns string (or throws); never false here.
+        return password_hash($plain, PASSWORD_ARGON2ID, $this->options());
     }
 
     public function verify(string $plain, string $hash): bool

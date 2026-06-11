@@ -55,7 +55,7 @@ final class Session implements SessionHandlerInterface
         return true;
     }
 
-    public function gc(int $maxLifetime): int|false
+    public function gc(int $max_lifetime): int|false
     {
         $stmt = $this->pdo->prepare(
             'UPDATE user_sessions

@@ -19,8 +19,9 @@ final class LogoutController
             return;
         }
 
-        if (session_id() !== '') {
-            $this->session->destroy(session_id());
+        $sid = session_id();
+        if (is_string($sid) && $sid !== '') {
+            $this->session->destroy($sid);
         }
         $_SESSION = [];
         session_destroy();
