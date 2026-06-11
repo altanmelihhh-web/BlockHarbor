@@ -35,24 +35,26 @@ final class AuditChainTest extends TestCase
     {
         $this->pdo->exec("INSERT INTO audit_log (action) VALUES ('test.first')");
 
+        // PDO PG returns bytea as resource — use encode() in SQL for clean strings.
         $row = $this->pdo->query(
-            'SELECT prev_hash, entry_hash FROM audit_log ORDER BY id'
+            "SELECT encode(prev_hash, 'hex') AS prev_hash, encode(entry_hash, 'hex') AS entry_hash
+             FROM audit_log ORDER BY id"
         )->fetch(PDO::FETCH_ASSOC);
 
-        self::assertSame("\x00", $row['prev_hash']);
-        self::assertSame(32, strlen($row['entry_hash']));  // sha256 = 32 bytes
+        self::assertSame('00', $row['prev_hash']);              // \x00 → '00' hex
+        self::assertSame(64, strlen($row['entry_hash']));        // sha256 = 32 bytes = 64 hex chars
     }
 
     public function test_chain_links_to_previous_entry(): void
     {
         $this->pdo->exec("INSERT INTO audit_log (action) VALUES ('first')");
         $first = $this->pdo->query(
-            'SELECT entry_hash FROM audit_log ORDER BY id DESC LIMIT 1'
+            "SELECT encode(entry_hash, 'hex') FROM audit_log ORDER BY id DESC LIMIT 1"
         )->fetchColumn();
 
         $this->pdo->exec("INSERT INTO audit_log (action) VALUES ('second')");
         $secondPrev = $this->pdo->query(
-            'SELECT prev_hash FROM audit_log ORDER BY id DESC LIMIT 1'
+            "SELECT encode(prev_hash, 'hex') FROM audit_log ORDER BY id DESC LIMIT 1"
         )->fetchColumn();
 
         self::assertSame($first, $secondPrev);
@@ -65,7 +67,9 @@ final class AuditChainTest extends TestCase
         $this->pdo->exec("INSERT INTO audit_log (action) VALUES ('c')");
 
         $rows = $this->pdo->query(
-            'SELECT prev_hash, entry_hash FROM audit_log ORDER BY id'
+            "SELECT encode(prev_hash, 'hex') AS prev_hash,
+                    encode(entry_hash, 'hex') AS entry_hash
+             FROM audit_log ORDER BY id"
         )->fetchAll(PDO::FETCH_ASSOC);
 
         self::assertCount(3, $rows);
