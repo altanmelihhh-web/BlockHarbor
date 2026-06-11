@@ -13,6 +13,7 @@ final class AuthService
         private readonly int $maxFailsPerIpIn5Min,
         private readonly int $maxFailsPerUserIn1h,
         private readonly int $lockoutMinutes,
+        private readonly ?MfaResolver $mfa = null,
     ) {}
 
     public function attempt(string $username, string $password, string $ip, ?string $userAgent): AttemptOutcome
@@ -58,12 +59,24 @@ final class AuthService
             return new AttemptOutcome(AuthResult::BadCredentials, null);
         }
 
-        // 5. Success: reset counters, record audit-friendly attempt row,
-        //    return the freshly re-read user (with last_login_at now set).
+        // 5. Password OK: reset counters, record successful attempt,
+        //    re-read user (last_login_at now set).
         $this->users->recordSuccessfulLogin($user->id);
         $this->attempts->record($username, $ip, success: true, failureReason: null, userAgent: $userAgent);
+        $fresh = $this->users->findById($user->id);
 
-        return new AttemptOutcome(AuthResult::Success, $this->users->findById($user->id));
+        // 6. MFA gate: if a resolver is installed and the user has an
+        //    enrolled factor, return RequiresMfa instead of Success. The
+        //    LoginController stashes pending_user_id and redirects to /2fa;
+        //    only after MFA verification does pending_user_id → user_id.
+        if ($this->mfa !== null && $fresh !== null) {
+            $state = $this->mfa->resolve($fresh);
+            if ($state !== MfaState::NotRequired) {
+                return new AttemptOutcome(AuthResult::RequiresMfa, $fresh);
+            }
+        }
+
+        return new AttemptOutcome(AuthResult::Success, $fresh);
     }
 }
 
