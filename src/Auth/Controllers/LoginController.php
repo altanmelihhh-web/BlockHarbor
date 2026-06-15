@@ -45,6 +45,20 @@ final class LoginController
 
         $outcome = $this->auth->attempt($username, $password, $ip, $ua);
 
+        // Password OK + MFA challenge pending. Do NOT promote to a full
+        // session yet — only pending_user_id is set. /2fa handler converts
+        // pending_user_id → user_id after factor verification.
+        if ($outcome->result === AuthResult::RequiresMfa && $outcome->user !== null) {
+            session_regenerate_id(true);
+            $_SESSION = [];
+            $_SESSION['pending_user_id']   = $outcome->user->id;
+            $_SESSION['pending_ip']         = $ip;
+            $_SESSION['pending_user_agent'] = $ua;
+            $this->csrf->rotate();
+            $this->redirect('/2fa');
+            return;
+        }
+
         if ($outcome->result === AuthResult::Success && $outcome->user !== null) {
             $this->session->start($outcome->user->id, $ip, $ua);
             session_regenerate_id(true);
