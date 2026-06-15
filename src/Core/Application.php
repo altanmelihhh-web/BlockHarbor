@@ -7,6 +7,7 @@ use BlockHarbor\Auth\AuthService;
 use BlockHarbor\Auth\Controllers\LoginController;
 use BlockHarbor\Auth\Controllers\LogoutController;
 use BlockHarbor\Auth\LoginAttemptRepository;
+use BlockHarbor\Auth\MfaResolver;
 use BlockHarbor\Auth\PasswordHasher;
 use BlockHarbor\Auth\UserRepository;
 use League\Plates\Engine;
@@ -88,6 +89,7 @@ final class Application
                     maxFailsPerIpIn5Min: $this->config->int('LOGIN_MAX_FAILS_PER_IP_5MIN', 10),
                     maxFailsPerUserIn1h: $this->config->int('LOGIN_MAX_FAILS_PER_USER_1H', 5),
                     lockoutMinutes:      $this->config->int('LOGIN_LOCKOUT_MINUTES', 15),
+                    mfa:                 new MfaResolver($pdo),
                 ),
                 new Session($pdo, $this->config->int('SESSION_LIFETIME', 1800)),
                 $csrf,
