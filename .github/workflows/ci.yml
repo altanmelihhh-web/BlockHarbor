@@ -46,9 +46,12 @@ jobs:
         run: composer install --no-progress --prefer-dist
 
       - name: Create test .env
+        # APP_ENV=production: phinx.php 'testing' env appends '_test' to
+        # the DB name (blockharbor_test) which the PG service container
+        # does not create. 'production' uses DB_NAME verbatim.
         run: |
           cat > .env <<EOF
-          APP_ENV=testing
+          APP_ENV=production
           DB_HOST=127.0.0.1
           DB_PORT=5432
           DB_NAME=blockharbor
