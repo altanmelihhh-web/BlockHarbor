@@ -24,20 +24,20 @@ final class MfaResolver
 
     public function resolve(User $user): MfaState
     {
-        $hasTotp = (bool)$this->pdo->query(
-            "SELECT 1 FROM user_totp WHERE user_id = {$user->id} AND verified_at IS NOT NULL LIMIT 1"
-        )->fetchColumn();
+        $stmt = $this->pdo->prepare(
+            'SELECT 1 FROM user_totp WHERE user_id = :u AND verified_at IS NOT NULL LIMIT 1'
+        );
+        $stmt->execute([':u' => $user->id]);
+        $hasTotp = (bool)$stmt->fetchColumn();
 
         // Check passkey table only if it exists (P2 Task 14 lands it).
-        // Guarded so Task 9 works before Task 14.
         $hasPasskey = false;
-        $stmt = $this->pdo->query(
-            "SELECT to_regclass('public.user_passkeys')"
-        );
-        if ($stmt && $stmt->fetchColumn() !== null) {
-            $hasPasskey = (bool)$this->pdo->query(
-                "SELECT 1 FROM user_passkeys WHERE user_id = {$user->id} LIMIT 1"
-            )->fetchColumn();
+        $check = $this->pdo->prepare("SELECT to_regclass('public.user_passkeys')");
+        $check->execute();
+        if ($check->fetchColumn() !== null) {
+            $pk = $this->pdo->prepare('SELECT 1 FROM user_passkeys WHERE user_id = :u LIMIT 1');
+            $pk->execute([':u' => $user->id]);
+            $hasPasskey = (bool)$pk->fetchColumn();
         }
 
         return match (true) {

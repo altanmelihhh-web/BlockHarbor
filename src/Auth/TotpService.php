@@ -24,12 +24,18 @@ final class TotpService
 
     public function verify(string $secret, string $code): bool
     {
+        if ($code === '') {
+            return false;
+        }
         // ±10s clock drift allowance (must be < period per otphp constraint).
         return $this->totp($secret)->verify($code, leeway: 10);
     }
 
     public function provisioningUri(string $secret, string $label): string
     {
+        if ($label === '' || $this->issuer === '') {
+            throw new \InvalidArgumentException('label and issuer must be non-empty');
+        }
         $totp = $this->totp($secret);
         $totp->setLabel($label);
         $totp->setIssuer($this->issuer);
@@ -48,6 +54,9 @@ final class TotpService
 
     private function totp(string $secret): TOTP
     {
+        if ($secret === '') {
+            throw new \InvalidArgumentException('TOTP secret must be non-empty');
+        }
         $totp = TOTP::createFromSecret($secret);
         $totp->setDigits($this->digits);
         $totp->setPeriod($this->period);
