@@ -5,9 +5,30 @@
 
 Threat intelligence management panel — PostgreSQL-backed, Argon2id auth, hash-chained audit log, MIT licensed.
 
-> **Status:** P1 (Foundation + Auth Core) in development. See implementation plans in `docs/superpowers/plans/`.
+> **Latest release:** [`v0.1.1`](https://github.com/altanmelihhh-web/BlockHarbor/releases) — P2 backend (audit chain verifier + TOTP infrastructure); MFA UI lands in `v0.1.2`. See [CHANGELOG.md](CHANGELOG.md) and [ROADMAP.md](ROADMAP.md).
 
-## 🚀 One-command install (Ubuntu/Debian)
+## 🐳 Quick start with Docker (recommended for evaluation)
+
+```bash
+# Pull the pre-built image (no library/service compat headaches)
+docker pull ghcr.io/altanmelihhh-web/blockharbor:v0.1.1
+
+# Run with the bundled compose stack (postgres + php-fpm + nginx)
+git clone https://github.com/altanmelihhh-web/BlockHarbor.git
+cd BlockHarbor
+cp .env.example .env
+# edit .env: APP_KEY (openssl rand -hex 32), DB_PASSWORD
+docker compose up -d
+docker compose exec php vendor/bin/phinx migrate
+docker compose exec php vendor/bin/phinx seed:run
+# Browse: https://localhost:8443/login    (admin / changeme-p1-seed)
+```
+
+The container image is built and pushed to `ghcr.io` automatically on every
+release tag via [GitHub Actions](.github/workflows/docker.yml). No dependency
+drift between your machine and production.
+
+## 🚀 One-command install (Ubuntu/Debian — host-native)
 
 ```bash
 git clone https://github.com/altanmelihhh-web/BlockHarbor.git

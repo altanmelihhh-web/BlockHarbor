@@ -5,7 +5,51 @@ All notable changes to BlockHarbor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.1] — 2026-06-18
+
+P2 backend infrastructure (audit hardening + TOTP groundwork). MFA UI is
+intentionally not yet routed; the backend ships dormant until `v0.1.2`
+delivers the `/2fa` flow.
+
+### Added
+- `bin/verify-audit-chain` CLI (text / `--json` / `--quiet` modes) for cron-
+  monitored tamper detection. Already registered weekly by `bin/install.sh`.
+- `BlockHarbor\Audit\AuditLogger` — universal hook injected into auth
+  services
+- `BlockHarbor\Audit\ChainVerifier` — PG-delegated recompute of the SHA-256
+  chain; returns first mismatch (id + reason)
+- `BlockHarbor\Core\Crypto` — pgcrypto `pgp_sym_encrypt` wrapper for at-rest
+  encryption of TOTP secrets, recovery codes, future API keys
+- `BlockHarbor\Auth\TotpService` — RFC 6238 (spomky-labs/otphp), with QR
+  provisioning URI + 10-code recovery generator
+- `BlockHarbor\Auth\UserTotpRepository` — enroll / verify / consume recovery
+  codes (bcrypt-hashed at rest) / mark-verified
+- `BlockHarbor\Auth\{MfaState, MfaResolver}` — decides which factor is
+  enrolled (TOTP / Passkey / Either / None); policy gate distinct from
+  enrollment state
+- `AuthResult::RequiresMfa` outcome; `AuthService` gates Success behind
+  factor check. `LoginController` redirects to `/2fa` on RequiresMfa
+- Migrations: `user_totp` (with secret + recovery codes encrypted, partial
+  index on verified rows)
+- New Composer deps: `spomky-labs/otphp ^11.2`, `bacon/bacon-qr-code ^3.0`,
+  `web-auth/webauthn-lib ^4.7`, `geoip2/geoip2 ^3.0` (with 15 transitive)
+
+### Container
+- `ghcr.io/altanmelihhh-web/blockharbor:v0.1.1` — published via GitHub
+  Actions `docker.yml` on tag push (PHP 8.1-FPM Alpine + composer + npm
+  build baked in)
+
+### Status of MFA flow
+- Backend complete: services, repositories, migration, AuthService gate
+- UI NOT yet wired: `/2fa` GET/POST + `/2fa/setup` controllers land in
+  v0.1.2. Until then, no user can self-enroll TOTP via UI, so the
+  RequiresMfa outcome cannot fire in practice for fresh installs
+
+## [0.1.0-setup] — 2026-06-09 → [0.1.0-p1] — 2026-06-11
+
+(See git tags for full set-up + P1 deliverables.)
+
+## [Unreleased — pre-v0.1.0]
 
 ### Added
 - Comprehensive interactive installer (`bin/install.sh`) with pre-flight checks,
