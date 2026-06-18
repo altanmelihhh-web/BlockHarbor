@@ -1,106 +1,97 @@
 # BlockHarbor
 
-<img width="1415" height="608" alt="image" src="https://github.com/user-attachments/assets/3ed8b6f6-e331-4744-8777-af8c4b0a05e3" />
-
+<img width="1415" height="608" alt="BlockHarbor login screen" src="https://github.com/user-attachments/assets/3ed8b6f6-e331-4744-8777-af8c4b0a05e3" />
 
 Threat intelligence management panel — PostgreSQL-backed, Argon2id auth, hash-chained audit log, MIT licensed.
 
-> **Latest release:** [`v0.1.1`](https://github.com/altanmelihhh-web/BlockHarbor/releases) — P2 backend (audit chain verifier + TOTP infrastructure); MFA UI lands in `v0.1.2`. See [CHANGELOG.md](CHANGELOG.md) and [ROADMAP.md](ROADMAP.md).
+> **Latest release:** [`v0.1.1`](https://github.com/altanmelihhh-web/BlockHarbor/releases) — audit chain verifier + TOTP backend. MFA UI lands in `v0.1.2`. [CHANGELOG](CHANGELOG.md) · [ROADMAP](ROADMAP.md)
 
-## 🐳 Quick start with Docker (recommended for evaluation)
+---
+
+## Install
+
+Pick **one** of two paths. Both end with you logged into the dashboard at `https://<host>:8443/login` as `admin` / `changeme-p1-seed`.
+
+### Option A — Docker (3 commands, recommended for trying it out)
 
 ```bash
-# Pull the pre-built image (no library/service compat headaches)
-docker pull ghcr.io/altanmelihhh-web/blockharbor:v0.1.1
-
-# Run with the bundled compose stack (postgres + php-fpm + nginx)
-git clone https://github.com/altanmelihhh-web/BlockHarbor.git
-cd BlockHarbor
-cp .env.example .env
-# edit .env: APP_KEY (openssl rand -hex 32), DB_PASSWORD
-docker compose up -d
-docker compose exec php vendor/bin/phinx migrate
-docker compose exec php vendor/bin/phinx seed:run
-# Browse: https://localhost:8443/login    (admin / changeme-p1-seed)
+git clone https://github.com/altanmelihhh-web/BlockHarbor.git && cd BlockHarbor
+cp .env.example .env && sed -i "s/change-me-32-byte-random-hex/$(openssl rand -hex 32)/" .env
+docker compose up -d && docker compose exec php vendor/bin/phinx migrate && docker compose exec php vendor/bin/phinx seed:run
 ```
 
-The container image is built and pushed to `ghcr.io` automatically on every
-release tag via [GitHub Actions](.github/workflows/docker.yml). No dependency
-drift between your machine and production.
+Open <https://localhost:8443/login>. Image pulled from `ghcr.io/altanmelihhh-web/blockharbor:v0.1.1`.
 
-## 🚀 One-command install (Ubuntu/Debian — host-native)
+### Option B — Native (Ubuntu/Debian + Apache, recommended for production)
 
 ```bash
-git clone https://github.com/altanmelihhh-web/BlockHarbor.git
-cd BlockHarbor
+git clone https://github.com/altanmelihhh-web/BlockHarbor.git && cd BlockHarbor
 sudo bash bin/install.sh
 ```
 
-That's it. The interactive installer asks for hostname, port, DB credentials,
-SMTP, and optional API keys (VirusTotal, GreyNoise, Shodan, AbuseIPDB, MaxMind,
-ipgeolocation, Slack webhook). It then:
+The interactive installer asks for hostname/port, DB credentials, optional SMTP + API keys, then handles everything:
 
-- ✅ Installs missing system packages (apache2, php8.1, postgresql-14, composer, node)
-- ✅ Creates DB (`blockharbor`) + 2 roles (`blockharbor_app` runtime, `blockharbor_migrator` DDL)
-- ✅ Generates `.env` with secure random `APP_KEY` + DB password (mode 0600, owner www-data)
-- ✅ Runs `composer install` + `npm install` + `npm run build`
-- ✅ Configures Apache vhost on chosen port (default 8443) with TLS, HSTS, CSP
-- ✅ Applies security hardening (mod_security headers, fail2ban filter+jail, logrotate)
-- ✅ Registers cron jobs (session/login cleanup, audit verify, feed fetch, CVE sync, backups)
-- ✅ Runs migrations + seeds default admin user
-- ✅ Prints access URL + admin credentials at the end
+- apt install missing packages (apache2, php8.1, postgresql-14, composer, node)
+- Create DB + 2 roles (`blockharbor_app` runtime, `blockharbor_migrator` DDL)
+- Generate `.env` with random `APP_KEY` + DB password (mode 0600)
+- `composer install`, `npm install && npm run build`
+- Apache vhost on chosen port with TLS + HSTS + CSP headers
+- Optional hardening: fail2ban filter, logrotate, mod_security headers
+- Cron registry: session cleanup, audit verify, backups
+- Migrations + default admin
 
-Re-run safely — every step is idempotent.
+Idempotent — re-run safely. `--unattended` for non-interactive. `--dry-run` to preview.
 
-### Other install modes
+---
 
-```bash
-sudo bash bin/install.sh --unattended                # use defaults; non-interactive
-sudo bash bin/install.sh --dry-run --unattended      # preview without writing
-sudo bash bin/install.sh --config /path/to/values.env # source variables from file
-sudo bash bin/install.sh --skip-packages             # skip apt; assume installed
-sudo bash bin/install.sh --skip-crons                # skip cron registration
-```
-
-### Day-2 operations
+## Operations
 
 ```bash
-sudo bash bin/doctor.sh         # 12-check health report
-sudo bash bin/backup.sh         # pg_dump → /var/backups/blockharbor/
-sudo bash bin/restore.sh <file> # interactive picker or named file
-sudo bash bin/update.sh         # git pull + composer + npm + migrate + reload
-sudo bash bin/verify-install.sh # smoke test endpoints + security headers
-sudo bash bin/uninstall.sh      # full removal (or --keep-data)
+sudo bash bin/doctor.sh          # 12-check health report
+sudo bash bin/backup.sh          # pg_dump → /var/backups/blockharbor/
+sudo bash bin/restore.sh         # interactive backup picker
+sudo bash bin/update.sh          # git pull + migrate + reload
+sudo bash bin/uninstall.sh       # full removal (--keep-data optional)
+./bin/verify-audit-chain         # tamper detection (cron-scheduled weekly)
 ```
 
-## Alternative install paths
-
-### Docker Compose (for evaluators / GitHub portability)
-
-```bash
-docker compose up -d
-docker compose exec php composer install
-docker compose exec php vendor/bin/phinx migrate
-docker compose exec php vendor/bin/phinx seed:run
-# Browse: https://localhost:8443/login
-```
-
-### Manual (for advanced users — see [docs/deployment-apache.md](docs/deployment-apache.md))
-
-```bash
-cp .env.example .env
-# Edit .env: DB_PASSWORD, APP_KEY (openssl rand -hex 32), etc.
-composer install
-npm install && npm run build
-vendor/bin/phinx migrate && vendor/bin/phinx seed:run
-sudo a2ensite blockharbor && sudo systemctl reload apache2
-```
+---
 
 ## Architecture
 
-See `docs/architecture.md` (added in P7) and the design spec at
-`docs/superpowers/specs/2026-06-07-blockharbor-db-migration-design.md`.
+PostgreSQL 14 + PHP 8.1 + Apache (or nginx via Docker) + Plates templates + Tailwind + Alpine. Domain-driven `src/`:
+
+```
+src/Auth/      — Argon2id login, lockout, MFA (TOTP backend in v0.1.1)
+src/Audit/     — universal hash-chained audit logger + tamper detection
+src/Core/      — bootstrap, PDO factory, router, sessions, CSRF, pgcrypto wrapper
+src/Admin/     — dashboard + (future) admin panels
+```
+
+Detailed design in [`docs/superpowers/specs/`](docs/superpowers/specs/) and [`docs/superpowers/plans/`](docs/superpowers/plans/). Apache deployment guide: [`docs/deployment-apache.md`](docs/deployment-apache.md).
+
+---
+
+## Roadmap
+
+| Release | Focus | Status |
+|---|---|---|
+| v0.1.0-p1 | Password auth + dashboard | ✅ shipped |
+| **v0.1.1** | **Audit hardening + TOTP backend** | **✅ current** |
+| v0.1.2 | MFA UI (`/2fa` + `/2fa/setup` + WebAuthn) | next |
+| v0.2.x | IOC domain (threat indicator CRUD) | planned |
+| v0.3.x | Feed fetchers (CSAF, USOM, KEV) | planned |
+
+Full plan in [ROADMAP.md](ROADMAP.md).
+
+---
+
+## Contributing & Security
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — dev setup, commit style
+- [SECURITY.md](SECURITY.md) — responsible disclosure
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## License
 
-MIT — see `LICENSE`.
+MIT — see [LICENSE](LICENSE).
