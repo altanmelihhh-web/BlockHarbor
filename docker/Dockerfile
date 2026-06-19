@@ -1,4 +1,4 @@
-FROM php:8.1-fpm-alpine
+FROM php:8.5-fpm-alpine
 
 # PHP extensions + build deps for composer + npm asset pipeline
 RUN apk add --no-cache \
