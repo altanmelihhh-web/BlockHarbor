@@ -4,11 +4,13 @@ namespace BlockHarbor\Core;
 
 use BlockHarbor\Admin\Controllers\DashboardController;
 use BlockHarbor\Auth\AuthService;
+use BlockHarbor\Auth\Controllers\ChangePasswordController;
 use BlockHarbor\Auth\Controllers\LoginController;
 use BlockHarbor\Auth\Controllers\LogoutController;
 use BlockHarbor\Auth\LoginAttemptRepository;
 use BlockHarbor\Auth\MfaResolver;
 use BlockHarbor\Auth\PasswordHasher;
+use BlockHarbor\Auth\PasswordPolicy;
 use BlockHarbor\Auth\UserRepository;
 use League\Plates\Engine;
 
@@ -53,11 +55,13 @@ final class Application
 
     private function registerRoutes(): void
     {
-        $this->router->get ('/login',     [LoginController::class,    'show']);
-        $this->router->post('/login',     [LoginController::class,    'submit']);
-        $this->router->post('/logout',    [LogoutController::class,   'submit']);
-        $this->router->get ('/',          [DashboardController::class,'index']);
-        $this->router->get ('/dashboard', [DashboardController::class,'index']);
+        $this->router->get ('/login',           [LoginController::class,          'show']);
+        $this->router->post('/login',           [LoginController::class,          'submit']);
+        $this->router->get ('/change-password', [ChangePasswordController::class, 'show']);
+        $this->router->post('/change-password', [ChangePasswordController::class, 'submit']);
+        $this->router->post('/logout',          [LogoutController::class,         'submit']);
+        $this->router->get ('/',                [DashboardController::class,      'index']);
+        $this->router->get ('/dashboard',       [DashboardController::class,      'index']);
     }
 
     public function run(): void
@@ -99,6 +103,19 @@ final class Application
                 $this->views,
             ),
             LogoutController::class => new LogoutController(new Session($pdo), $csrf),
+            ChangePasswordController::class => new ChangePasswordController(
+                new UserRepository($pdo),
+                new PasswordHasher(),
+                new PasswordPolicy(
+                    minLength:        $this->config->int ('PASSWORD_MIN_LENGTH',          12),
+                    requireMixedCase: $this->config->bool('PASSWORD_REQUIRE_MIXED_CASE',  true),
+                    requireDigit:     $this->config->bool('PASSWORD_REQUIRE_DIGIT',       true),
+                    requireSpecial:   $this->config->bool('PASSWORD_REQUIRE_SPECIAL',     true),
+                ),
+                new Session($pdo, $this->config->int('SESSION_LIFETIME', 1800)),
+                $csrf,
+                $this->views,
+            ),
             DashboardController::class => new DashboardController(
                 new UserRepository($pdo), $this->views,
             ),

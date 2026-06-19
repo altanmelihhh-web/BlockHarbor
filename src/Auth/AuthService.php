@@ -65,7 +65,14 @@ final class AuthService
         $this->attempts->record($username, $ip, success: true, failureReason: null, userAgent: $userAgent);
         $fresh = $this->users->findById($user->id);
 
-        // 6. MFA gate: if a resolver is installed and the user has an
+        // 6. Forced password change (e.g. default admin seed, or operator
+        //    reset). Gate Success behind a /change-password round-trip so a
+        //    well-known seed credential cannot reach the dashboard.
+        if ($fresh !== null && $fresh->mustChangePassword) {
+            return new AttemptOutcome(AuthResult::PasswordChangeRequired, $fresh);
+        }
+
+        // 7. MFA gate: if a resolver is installed and the user has an
         //    enrolled factor, return RequiresMfa instead of Success. The
         //    LoginController stashes pending_user_id and redirects to /2fa;
         //    only after MFA verification does pending_user_id → user_id.
