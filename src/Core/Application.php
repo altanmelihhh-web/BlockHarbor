@@ -33,7 +33,10 @@ final class Application
         session_set_cookie_params([
             'lifetime' => 0,
             'path'     => '/',
-            'secure'   => true,
+            // SESSION_COOKIE_SECURE=false only for HTTP development/Docker
+            // quickstart; production (TLS-terminated) MUST keep this true,
+            // otherwise the cookie can leak over an unintended HTTP hop.
+            'secure'   => $config->bool('SESSION_COOKIE_SECURE', true),
             'httponly' => true,
             'samesite' => 'Strict',
         ]);
