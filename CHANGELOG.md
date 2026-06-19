@@ -49,6 +49,33 @@ delivers the `/2fa` flow.
 
 (See git tags for full set-up + P1 deliverables.)
 
+## [Unreleased]
+
+### Fixed
+- docker: Dockerfile now bakes composer deps + npm-built assets into the image
+  (matches what v0.1.1 CHANGELOG already claimed; previously `vendor/bin/phinx`
+  did not exist in the built image and Compose's `/app/vendor` named volume
+  masked any host vendor dir)
+- docker: postgres init script creates `blockharbor_migrator` role with DDL
+  grants on first container start; Phinx now connects with the right role
+- docker: HTTP-only quickstart on configurable `HTTP_PORT` (default `8090`);
+  TLS is handled at an upstream reverse proxy in production. `8080` was too
+  commonly conflicted on hosts that already run apache/nginx
+
+### Added
+- `bin/docker-up.sh` — interactive Docker quickstart helper that hydrates
+  `.env`, detects port conflicts and prompts for an alternate, then builds /
+  migrates / seeds. `--auto-port` for unattended / CI use
+- `docker/postgres-init/` — first-run init scripts mounted into postgres
+- `HTTP_PORT` env var (`.env.example`)
+
+### Changed
+- `docker-compose.yml`: dropped `:/app` source mount on PHP container, dropped
+  `/app/vendor` named volume, dropped `443/8443` TLS port mapping
+- `docker/nginx.conf`: dropped TLS server block; HSTS header removed (no
+  longer applicable at this layer)
+- README Option A: 3 commands → 2 commands via `bin/docker-up.sh`
+
 ## [Unreleased — pre-v0.1.0]
 
 ### Added

@@ -12,15 +12,18 @@ Threat intelligence management panel — PostgreSQL-backed, Argon2id auth, hash-
 
 Pick **one** of two paths. Both end with you logged into the dashboard at `https://<host>:8443/login` as `admin` / `changeme-p1-seed`.
 
-### Option A — Docker (3 commands, recommended for trying it out)
+### Option A — Docker (2 commands, recommended for trying it out)
 
 ```bash
 git clone https://github.com/altanmelihhh-web/BlockHarbor.git && cd BlockHarbor
-cp .env.example .env && sed -i "s/change-me-32-byte-random-hex/$(openssl rand -hex 32)/" .env
-docker compose up -d && docker compose exec php vendor/bin/phinx migrate && docker compose exec php vendor/bin/phinx seed:run
+bash bin/docker-up.sh
 ```
 
-Open <https://localhost:8443/login>. Image pulled from `ghcr.io/altanmelihhh-web/blockharbor:v0.1.1`.
+`bin/docker-up.sh` generates `.env` with random secrets, detects port conflicts and prompts for an alternate (default `HTTP_PORT=8090`), then builds the image (~5 min first time), starts the stack, runs migrations and the default admin seed. Open the printed URL: <http://localhost:8090/login>.
+
+For unattended / CI: `bash bin/docker-up.sh --auto-port` skips prompts and picks the next free port.
+
+The Compose stack is HTTP-only; production deploys terminate TLS at an upstream reverse proxy (apache / nginx / ALB). Manual step-by-step is in [`docker/README.md`](docker/README.md).
 
 ### Option B — Native (Ubuntu/Debian + Apache, recommended for production)
 
