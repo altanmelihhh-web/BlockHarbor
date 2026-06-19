@@ -10,7 +10,11 @@ Threat intelligence management panel — PostgreSQL-backed, Argon2id auth, hash-
 
 ## Install
 
-Pick **one** of two paths. Both end with you logged into the dashboard at `https://<host>:8443/login` as `admin` / `changeme-p1-seed`.
+Pick **one** of two paths. Both end with `admin` / `changeme-p1-seed` as the
+default login (change it immediately). The URL differs:
+
+- **Option A (Docker):** `http://localhost:<HTTP_PORT>/login` (HTTP-only; TLS lives at an upstream reverse proxy)
+- **Option B (Native):** `https://<host>:<port>/login` (Apache with TLS + HSTS configured by the installer)
 
 ### Option A — Docker (2 commands, recommended for trying it out)
 
