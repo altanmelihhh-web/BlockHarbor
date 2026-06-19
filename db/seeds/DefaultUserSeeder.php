@@ -12,10 +12,14 @@ final class DefaultUserSeeder extends AbstractSeed
     public function run(): void
     {
         // Read initial admin from env (installer writes these into .env).
-        // Fall back to safe seeded values for fresh dev installs.
+        // Fall back to vendor-style 'admin' default + must_change_password=true
+        // so the first login is forced through /change-password before anything
+        // else is reachable.
         $username = (string)(getenv('INITIAL_ADMIN_USERNAME') ?: 'admin');
         $email    = (string)(getenv('INITIAL_ADMIN_EMAIL')    ?: 'admin@example.com');
-        $plain    = (string)(getenv('INITIAL_ADMIN_PASSWORD') ?: 'changeme-p1-seed');
+        $envPass  = (string)(getenv('INITIAL_ADMIN_PASSWORD') ?: '');
+        $isDefault = $envPass === '';
+        $plain    = $isDefault ? 'admin' : $envPass;
 
         $existing = $this->fetchRow("SELECT id FROM users WHERE username = '$username'");
         if ($existing) {
@@ -30,15 +34,19 @@ final class DefaultUserSeeder extends AbstractSeed
         ]);
 
         $this->insert('users', [[
-            'username'            => $username,
-            'email'               => $email,
-            'password_hash'       => $hash,
-            'role'                => 'admin',
-            'active'              => true,
-            'mfa_required'        => false,
-            'password_changed_at' => date('Y-m-d H:i:sP'),
+            'username'             => $username,
+            'email'                => $email,
+            'password_hash'        => $hash,
+            'role'                 => 'admin',
+            'active'               => true,
+            'mfa_required'         => false,
+            'must_change_password' => $isDefault,
+            'password_changed_at'  => date('Y-m-d H:i:sP'),
         ]]);
 
-        $this->getOutput()->writeln("  ↳ admin user '$username' seeded");
+        $msg = $isDefault
+            ? "  ↳ admin user '$username' seeded with default password 'admin' (forced change on first login)"
+            : "  ↳ admin user '$username' seeded with INITIAL_ADMIN_PASSWORD";
+        $this->getOutput()->writeln($msg);
     }
 }

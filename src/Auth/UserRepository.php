@@ -66,7 +66,11 @@ final class UserRepository
     public function updatePassword(int $userId, string $passwordHash): void
     {
         $stmt = $this->pdo->prepare(
-            'UPDATE users SET password_hash = :h, password_changed_at = now() WHERE id = :id'
+            'UPDATE users
+             SET password_hash        = :h,
+                 password_changed_at  = now(),
+                 must_change_password = false
+             WHERE id = :id'
         );
         $stmt->execute([':h' => $passwordHash, ':id' => $userId]);
 

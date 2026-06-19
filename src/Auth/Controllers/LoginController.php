@@ -45,6 +45,17 @@ final class LoginController
 
         $outcome = $this->auth->attempt($username, $password, $ip, $ua);
 
+        // Password OK but the user must replace a flagged credential. Stash
+        // pending_password_change_user_id and route to /change-password.
+        if ($outcome->result === AuthResult::PasswordChangeRequired && $outcome->user !== null) {
+            session_regenerate_id(true);
+            $_SESSION = [];
+            $_SESSION['pending_password_change_user_id'] = $outcome->user->id;
+            $this->csrf->rotate();
+            $this->redirect('/change-password');
+            return;
+        }
+
         // Password OK + MFA challenge pending. Do NOT promote to a full
         // session yet — only pending_user_id is set. /2fa handler converts
         // pending_user_id → user_id after factor verification.

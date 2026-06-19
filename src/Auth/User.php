@@ -19,6 +19,7 @@ final class User
         public readonly ?DateTimeImmutable $lastLoginAt,
         public readonly ?DateTimeImmutable $passwordChangedAt,
         public readonly bool $mfaRequired,
+        public readonly bool $mustChangePassword,
     ) {}
 
     /** @param array<string,mixed> $row */
@@ -37,6 +38,7 @@ final class User
             lastLoginAt: $row['last_login_at'] ? new DateTimeImmutable((string)$row['last_login_at']) : null,
             passwordChangedAt: $row['password_changed_at'] ? new DateTimeImmutable((string)$row['password_changed_at']) : null,
             mfaRequired: (bool)$row['mfa_required'],
+            mustChangePassword: (bool)($row['must_change_password'] ?? false),
         );
     }
 

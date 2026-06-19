@@ -15,4 +15,11 @@ enum AuthResult: string
      * stashes pending_user_id in \$_SESSION and redirects to /2fa.
      */
     case RequiresMfa = 'requires_mfa';
+
+    /**
+     * Password OK but the account is flagged must_change_password (default
+     * admin seed, or operator-initiated reset). LoginController stashes
+     * pending_password_change_user_id and redirects to /change-password.
+     */
+    case PasswordChangeRequired = 'password_change_required';
 }
