@@ -60,8 +60,16 @@ final class LoginController
         }
 
         if ($outcome->result === AuthResult::Success && $outcome->user !== null) {
-            $this->session->start($outcome->user->id, $ip, $ua);
+            // Order matters: regenerate first (destroys pre-auth row, mints a
+            // fresh PHP session id), then bind that id to the user. bindToUser
+            // upserts so the row exists even before this request's write() fires.
             session_regenerate_id(true);
+            $sid = session_id();
+            if ($sid === false || $sid === '') {
+                http_response_code(500);
+                return;
+            }
+            $this->session->bindToUser($sid, $outcome->user->id, $ip, $ua);
             $_SESSION['user_id']  = $outcome->user->id;
             $_SESSION['username'] = $outcome->user->username;
             $_SESSION['role']     = $outcome->user->role;

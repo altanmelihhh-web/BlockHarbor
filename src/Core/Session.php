@@ -5,6 +5,18 @@ namespace BlockHarbor\Core;
 use PDO;
 use SessionHandlerInterface;
 
+/**
+ * DB-backed PHP session handler.
+ *
+ * The PHP session lifecycle is:
+ *   request 1 (anonymous): session_start() → generates ID X → write(X, payload)
+ *     → row inserted with user_id = NULL (CSRF token + flash live here)
+ *   request 2 (login POST): read(X) → existing payload → CSRF verifies
+ *     → AuthService success → session_regenerate_id(true) → destroy(X), new ID Y
+ *     → LoginController calls bindToUser(Y, userId) → row Y exists with user_id
+ *     → request ends → write(Y, payload) refreshes payload
+ *   request 3+: read(Y) returns payload with user_id baked into $_SESSION
+ */
 final class Session implements SessionHandlerInterface
 {
     public function __construct(
@@ -37,15 +49,19 @@ final class Session implements SessionHandlerInterface
 
     public function write(string $id, string $data): bool
     {
+        // UPSERT: anonymous sessions (user_id NULL) AND post-login regenerated
+        // session ids both need a row. user_id is bound separately by
+        // bindToUser() after AuthService promotes the request.
         $stmt = $this->pdo->prepare(
-            'UPDATE user_sessions
-             SET payload          = :p,
+            'INSERT INTO user_sessions (id, payload, expires_at, last_activity_at)
+             VALUES (:id, :p, now() + make_interval(secs => :l), now())
+             ON CONFLICT (id) DO UPDATE SET
+                 payload          = EXCLUDED.payload,
                  last_activity_at = now(),
-                 expires_at       = now() + make_interval(secs => :l)
-             WHERE id = :id'
+                 expires_at       = EXCLUDED.expires_at'
         );
-        $stmt->execute([':p' => $data, ':l' => $this->lifetime, ':id' => $id]);
-        return $stmt->rowCount() > 0;
+        $stmt->execute([':id' => $id, ':p' => $data, ':l' => $this->lifetime]);
+        return true;
     }
 
     public function destroy(string $id): bool
@@ -67,16 +83,23 @@ final class Session implements SessionHandlerInterface
     }
 
     /**
-     * Create a new session row tied to the given user and return its UUID.
-     * The caller uses this UUID as the PHP session id (so PHP's native
-     * cookie + session_set_save_handler flow writes through us).
+     * Promote the current PHP session row from anonymous (user_id NULL) to
+     * authenticated. Call AFTER session_regenerate_id(true) in LoginController.
+     *
+     * Uses UPSERT so it works whether the SessionHandlerInterface::write()
+     * call has already fired for the post-regenerate id or not.
      */
-    public function start(int $userId, string $ip, ?string $userAgent): string
+    public function bindToUser(string $id, int $userId, string $ip, ?string $userAgent): void
     {
-        $id = \Ramsey\Uuid\Uuid::uuid7()->toString();
         $stmt = $this->pdo->prepare(
-            'INSERT INTO user_sessions (id, user_id, ip_address, user_agent, expires_at)
-             VALUES (:id, :uid, :ip, :ua, now() + make_interval(secs => :l))'
+            'INSERT INTO user_sessions (id, user_id, ip_address, user_agent, expires_at, last_activity_at)
+             VALUES (:id, :uid, :ip, :ua, now() + make_interval(secs => :l), now())
+             ON CONFLICT (id) DO UPDATE SET
+                 user_id          = EXCLUDED.user_id,
+                 ip_address       = EXCLUDED.ip_address,
+                 user_agent       = EXCLUDED.user_agent,
+                 last_activity_at = now(),
+                 expires_at       = EXCLUDED.expires_at'
         );
         $stmt->execute([
             ':id'  => $id,
@@ -85,6 +108,5 @@ final class Session implements SessionHandlerInterface
             ':ua'  => $userAgent,
             ':l'   => $this->lifetime,
         ]);
-        return $id;
     }
 }
