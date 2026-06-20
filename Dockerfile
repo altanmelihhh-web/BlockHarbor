@@ -1,10 +1,12 @@
 FROM php:8.1-apache
 
-# Install PHP extensions + system tools
+# Install PHP extensions + system tools (including libgd for phpspreadsheet)
 RUN apt-get update && apt-get install -y \
         libzip-dev libicu-dev libxml2-dev libonig-dev \
+        libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
         zip unzip git curl \
-    && docker-php-ext-install zip intl mbstring xml \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install zip intl mbstring xml gd \
     && rm -rf /var/lib/apt/lists/*
 
 # Composer

@@ -3,14 +3,10 @@
     "description": "Cyberwebeyeos Blacklist — Threat Intelligence Panel",
     "type": "project",
     "require": {
-        "phpoffice/phpspreadsheet": "^1.19",
-        "phpoffice/phpexcel": "^1.8"
+        "phpoffice/phpspreadsheet": "^1.29"
     },
     "config": {
-        "optimize-autoloader": true,
-        "allow-plugins": {
-            "composer/package-versions-deprecated": true
-        }
+        "optimize-autoloader": true
     },
     "autoload": {
         "psr-4": {}
