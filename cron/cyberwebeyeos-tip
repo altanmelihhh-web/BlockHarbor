@@ -1,0 +1,32 @@
+# Cyberwebeyeos TIP — scheduled jobs (R28/R33/R34)
+# Çalışma: www-data (cyberwebeyeos/ dosya sahipleriyle uyumlu)
+# Log: /var/log/cyberwebeyeos/
+# Düzenleyince:  sudo systemctl reload cron  (veya cron servisi otomatik yükler)
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# T1.2 — expire check (günlük 05:00, sadece rapor; auto-move istersen --move ekle)
+0 5 * * * www-data /usr/bin/php /var/www/html/cron_expire_check.php --report --quiet >> /var/log/cyberwebeyeos/expire-check.log 2>&1
+
+# T2.4 — big tech CIDR whitelist sync (Pazar 03:00, ~10k CIDR ~5s)
+0 3 * * 0 www-data /usr/bin/php /var/www/html/bigtech_whitelist_sync.php --quiet >> /var/log/cyberwebeyeos/bigtech-sync.log 2>&1
+
+# T2.3 — CIDR aggregation (Pazar 04:00, /24'te 50+ tek IP varsa indirgenir; backup oluşturur)
+0 4 * * 0 www-data /usr/bin/php /var/www/html/cidr_aggregate.php --threshold=50 --quiet >> /var/log/cyberwebeyeos/cidr-aggregate.log 2>&1
+
+# T4.1 — Tranco top-10000 warninglist refresh (Pazartesi 02:00, ~3 sn)
+0 2 * * 1 www-data /usr/bin/php /var/www/html/warninglist_sync.php --top=10000 --quiet >> /var/log/cyberwebeyeos/warninglist-sync.log 2>&1
+
+# T4.3 — CVE fetch (NVD + CISA KEV, günlük 06:00, incremental — anahtarsız ~1 dk)
+0 6 * * * www-data /usr/bin/php /var/www/html/cve_fetch.php --quiet >> /var/log/cyberwebeyeos/cve-fetch.log 2>&1
+
+# T6.B1 — Shodan InternetDB exposure scan (saatlik, unauth, customer_assets.json IP'leri tarar)
+0 * * * * www-data /usr/bin/php /var/www/html/shodan_exposure.php >> /var/log/cyberwebeyeos/shodan-exposure.log 2>&1
+
+# T6.C1 — CSAF 2.0 fetcher (15dk, 5 publisher: Cisco/RedHat/MSRC/Siemens/CISA)
+*/15 * * * * www-data /usr/bin/php /var/www/html/csaf_fetcher.php >> /var/log/cyberwebeyeos/csaf-fetch.log 2>&1
+
+# T6.C2 — PSIRT RSS fetcher (15dk, Fortinet + Palo Alto, CVE-ID extract only)
+*/15 * * * * www-data /usr/bin/php /var/www/html/psirt_rss_fetcher.php >> /var/log/cyberwebeyeos/psirt-rss.log 2>&1

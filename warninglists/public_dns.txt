@@ -1,0 +1,20 @@
+# Public DNS Resolvers (büyük ihtimalle FP)
+# Source: vendor websites, May 2026
+# Format: <ip>|<provider>
+# Type: ip
+8.8.8.8|Google Public DNS
+8.8.4.4|Google Public DNS secondary
+1.1.1.1|Cloudflare DNS
+1.0.0.1|Cloudflare DNS secondary
+9.9.9.9|Quad9 DNS
+149.112.112.112|Quad9 secondary
+208.67.222.222|OpenDNS
+208.67.220.220|OpenDNS secondary
+4.2.2.1|Level3/CenturyLink DNS
+4.2.2.2|Level3/CenturyLink DNS
+64.6.64.6|Verisign DNS
+64.6.65.6|Verisign DNS secondary
+77.88.8.8|Yandex DNS
+77.88.8.1|Yandex DNS secondary
+195.46.39.39|SafeDNS
+185.228.168.9|CleanBrowsing

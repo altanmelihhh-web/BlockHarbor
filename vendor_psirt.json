@@ -1,0 +1,42 @@
+{
+  "csaf_publishers": [
+    {
+      "name": "cisco",
+      "provider_metadata": "https://sec.cloudapps.cisco.com/security/center/csaf/cisco-trusted-provider.json",
+      "enabled": true
+    },
+    {
+      "name": "redhat",
+      "provider_metadata": "https://security.access.redhat.com/data/csaf/v2/provider-metadata.json",
+      "enabled": true
+    },
+    {
+      "name": "microsoft",
+      "provider_metadata": "https://api.msrc.microsoft.com/csaf/v3.0/provider-metadata.json",
+      "enabled": true
+    },
+    {
+      "name": "siemens",
+      "provider_metadata": "https://cert-portal.siemens.com/.well-known/csaf/provider-metadata.json",
+      "enabled": true
+    },
+    {
+      "name": "cisa",
+      "provider_metadata": "https://www.cisa.gov/sites/default/files/csaf/cisa.gov.provider-metadata.json",
+      "enabled": true
+    }
+  ],
+  "rss_publishers": [
+    {
+      "name": "fortinet",
+      "rss_url": "https://fortiguard.fortinet.com/rss/ir.xml",
+      "enabled": true
+    },
+    {
+      "name": "paloalto",
+      "rss_url": "https://security.paloaltonetworks.com/rss.xml",
+      "enabled": true
+    }
+  ],
+  "_updated_at": "2026-05-21T00:00:00Z"
+}

@@ -1,15 +1,61 @@
-/vendor/
-/node_modules/
-/public/assets/*
-!/public/assets/.gitkeep
-/.env
-/.phpunit.cache/
-/tests/.coverage/
+# Backup / temp
+*.backup
+*.backup-*
+*.save
+*.save.*
+*.bak
+backups/
+uploads/
+
+# Log files
 *.log
+
+# Editor / OS
 .DS_Store
 .idea/
 .vscode/
 *.swp
+*.swo
 
-# Docker self-signed certs (never commit)
-/docker/ssl/
+# IDE harness
+.claude/
+
+# PHP Composer
+vendor/
+composer.lock
+composer.phar
+
+# Cache dirs
+enrichment_cache/
+cve_cache/
+
+# Dynamic feed dirs (fetched at runtime)
+domain_dyn/
+lists_dyn/
+usom/
+
+# Large feed files (downloaded at runtime by sources_manager.php)
+cyberwebeyeosblacklist.txt
+ci-badguys.txt
+firehol_level1.txt
+spamhaus_drop.txt
+spamhaus_edrop.txt
+malwarebazaar_recent_md5.txt
+domain_combined.txt
+bigtech_cidr.txt
+stevenblack_hosts.txt
+blacklist.txt
+
+# Runtime JSON state
+cve_state.json
+greynoise_quota.json
+blacklist_meta.json
+feed_health_state.json
+cve_action_dismiss.json
+pending_ips.json
+
+# Docker env (keep .env.example)
+.env
+
+# Internal operational notes (not for public repo)
+NOTES.md

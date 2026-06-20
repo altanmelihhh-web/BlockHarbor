@@ -1,0 +1,86 @@
+# Popular Domains (büyük tech + CDN + TR top sites — FP riski yüksek)
+# Source: hand-curated baseline; Tranco refresh tarafından genişletilecek
+# Format: <domain>|<label>
+# Type: domain
+google.com|Google Search
+gmail.com|Google Mail
+youtube.com|YouTube
+googleapis.com|Google APIs
+gstatic.com|Google Static
+facebook.com|Facebook
+instagram.com|Instagram
+whatsapp.com|WhatsApp
+twitter.com|X/Twitter
+x.com|X/Twitter
+microsoft.com|Microsoft
+office.com|Microsoft Office
+office365.com|Microsoft Office
+outlook.com|Microsoft Outlook
+live.com|Microsoft Live
+windows.com|Microsoft Windows
+windowsupdate.com|Windows Update
+apple.com|Apple
+icloud.com|Apple iCloud
+amazon.com|Amazon
+amazonaws.com|AWS
+cloudfront.net|AWS CloudFront
+cloudflare.com|Cloudflare
+cloudflare-dns.com|Cloudflare DNS
+github.com|GitHub
+githubusercontent.com|GitHub content
+gitlab.com|GitLab
+linkedin.com|LinkedIn
+netflix.com|Netflix
+spotify.com|Spotify
+zoom.us|Zoom
+teams.microsoft.com|MS Teams
+slack.com|Slack
+discord.com|Discord
+yahoo.com|Yahoo
+duckduckgo.com|DuckDuckGo
+bing.com|Bing
+wikipedia.org|Wikipedia
+wikimedia.org|Wikimedia
+mozilla.org|Mozilla
+firefox.com|Firefox
+adobe.com|Adobe
+oracle.com|Oracle
+ibm.com|IBM
+salesforce.com|Salesforce
+dropbox.com|Dropbox
+sentry.io|Sentry
+datadoghq.com|Datadog
+fastly.net|Fastly CDN
+akamaihd.net|Akamai CDN
+edgekey.net|Akamai
+edgesuite.net|Akamai
+jsdelivr.net|jsDelivr CDN
+unpkg.com|unpkg
+cdn.jsdelivr.net|jsDelivr
+ajax.googleapis.com|Google AJAX
+fonts.googleapis.com|Google Fonts
+fonts.gstatic.com|Google Fonts static
+# Turkish top
+hepsiburada.com|Hepsiburada
+trendyol.com|Trendyol
+sahibinden.com|Sahibinden
+n11.com|N11
+gittigidiyor.com|GittiGidiyor
+yemeksepeti.com|Yemeksepeti
+mynet.com|Mynet
+milliyet.com.tr|Milliyet
+hurriyet.com.tr|Hürriyet
+sabah.com.tr|Sabah
+sondakika.com|Son Dakika
+turkiye.gov.tr|e-Devlet
+egm.gov.tr|EGM
+usom.gov.tr|USOM TR-CERT
+btk.gov.tr|BTK
+turkcell.com.tr|Turkcell
+vodafone.com.tr|Vodafone
+turktelekom.com.tr|Türk Telekom
+isbank.com.tr|İş Bankası
+garantibbva.com.tr|Garanti BBVA
+ziraatbank.com.tr|Ziraat Bankası
+akbank.com|Akbank
+yapikredi.com.tr|Yapı Kredi
