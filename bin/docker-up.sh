@@ -2,36 +2,65 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# 0. Require Docker
+# ── helpers ──────────────────────────────────────────────────────────────────
+need_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo "  (running as non-root — using sudo)"
+        SUDO="sudo"
+    else
+        SUDO=""
+    fi
+}
+
+install_docker_debian() {
+    echo "▶ Installing Docker (apt)..."
+    need_root
+    $SUDO apt-get update -qq
+    $SUDO apt-get install -y docker.io docker-compose-v2
+    $SUDO systemctl enable --now docker
+    # Add current user to docker group so they can run docker without sudo
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        $SUDO usermod -aG docker "$SUDO_USER"
+        echo "  Added $SUDO_USER to the 'docker' group."
+        echo "  NOTE: Log out and back in (or run: newgrp docker) for group to take effect."
+    fi
+    echo "✓ Docker installed"
+}
+
+# ── 0. Ensure Docker is present ───────────────────────────────────────────────
 if ! command -v docker &>/dev/null; then
     echo ""
-    echo "ERROR: Docker is not installed on this system."
-    echo ""
-    echo "Install it with:"
-    echo "  Ubuntu/Debian:  sudo apt install docker.io -y && sudo systemctl enable --now docker"
-    echo "  Then re-run:    bash bin/docker-up.sh"
-    echo ""
-    exit 1
+    echo "Docker is not installed. Installing now..."
+    if command -v apt-get &>/dev/null; then
+        install_docker_debian
+    else
+        echo "ERROR: Auto-install only supports apt-based systems (Ubuntu/Debian)."
+        echo "Please install Docker manually: https://docs.docker.com/engine/install/"
+        exit 1
+    fi
 fi
 
-# Require docker compose (v2 plugin)
-if ! docker compose version &>/dev/null; then
+# Ensure docker compose v2 plugin
+if ! docker compose version &>/dev/null 2>&1; then
     echo ""
-    echo "ERROR: 'docker compose' plugin not found."
-    echo ""
-    echo "Install it with:"
-    echo "  sudo apt install docker-compose-v2 -y"
-    echo ""
-    exit 1
+    echo "docker compose plugin not found. Installing..."
+    if command -v apt-get &>/dev/null; then
+        need_root
+        $SUDO apt-get install -y docker-compose-v2
+        echo "✓ docker compose installed"
+    else
+        echo "ERROR: Please install docker-compose-v2 manually."
+        exit 1
+    fi
 fi
 
-# 1. Hydrate .env if missing
+# ── 1. Hydrate .env ───────────────────────────────────────────────────────────
 if [[ ! -f .env ]]; then
     cp .env.example .env
     echo "✓ Created .env from .env.example"
 fi
 
-# 2. Port conflict detection
+# ── 2. Port conflict detection ────────────────────────────────────────────────
 HTTP_PORT="$(grep -oP '(?<=^HTTP_PORT=)\S+' .env 2>/dev/null || true)"
 HTTP_PORT="${HTTP_PORT:-8090}"
 
@@ -59,7 +88,7 @@ else
 fi
 echo "✓ Using HTTP_PORT=$HTTP_PORT"
 
-# 3. Build + start
+# ── 3. Build + start ──────────────────────────────────────────────────────────
 echo "▶ docker compose up -d --build  (first build ~3-5 min)"
 docker compose up -d --build
 
