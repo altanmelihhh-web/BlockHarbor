@@ -1,0 +1,12 @@
+# R50 baseline metrics — captured 2026-05-21
+
+## Line counts (data files)
+     5 blacklist.txt
+     3 whitelist.txt
+     5 cyberwebeyeosblacklist.txt
+ 13226 cve_state.json
+ 13239 total
+
+## PHP syntax check (find . -maxdepth 1 -name '*.php' -exec php -l)
+PHP syntax errors at R50: 0
+(All PHP files in repo root pass `php -l` cleanly.)

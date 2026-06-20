@@ -1,0 +1,7 @@
+{
+    "vendors": ["cisco","fortinet","microsoft","vmware","apache","palo alto","checkpoint","f5","citrix","linux"],
+    "min_cvss": 7.0,
+    "auto_dismiss_days": 30,
+    "include_kev_always": true,
+    "fetch_window_days": 7
+}

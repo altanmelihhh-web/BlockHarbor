@@ -1,0 +1,16 @@
+# IANA Special-Purpose IPv4 Reserved (RFC 6890 + 7335)
+# Source: https://www.iana.org/assignments/iana-ipv4-special-registry/
+# Format: <cidr>|<label>
+# Type: cidr (IPv4)
+0.0.0.0/8|This network (RFC 1122)
+127.0.0.0/8|Loopback (RFC 1122)
+169.254.0.0/16|Link Local (RFC 3927)
+192.0.0.0/24|IETF Protocol Assignments (RFC 6890)
+192.0.2.0/24|TEST-NET-1 (RFC 5737)
+198.51.100.0/24|TEST-NET-2 (RFC 5737)
+203.0.113.0/24|TEST-NET-3 (RFC 5737)
+198.18.0.0/15|Benchmark testing (RFC 2544)
+224.0.0.0/4|Multicast (RFC 5771)
+240.0.0.0/4|Reserved (RFC 1112)
+255.255.255.255/32|Limited broadcast
+100.64.0.0/10|CGNAT (RFC 6598)

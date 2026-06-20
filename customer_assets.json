@@ -1,0 +1,5 @@
+{
+  "customers": [],
+  "_schema_note": "Each customer: {name, ips:[], vendor_hint?}. Edit manually for Sprint 6; UI in Sprint 7+.",
+  "_updated_at": "2026-05-21T00:00:00Z"
+}

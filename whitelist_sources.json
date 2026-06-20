@@ -1,0 +1,7 @@
+{
+    "tenant": "default",
+    "sources": [],
+    "auto_update": false,
+    "last_update": null,
+    "comment": "External whitelist sources. Configure via admin panel."
+}

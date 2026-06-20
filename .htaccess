@@ -1,0 +1,37 @@
+# Cyberwebeyeos Blacklist — Apache directives
+
+# Hassas dosyalara web erişimini engelle (explicit, extra savunma)
+<FilesMatch "^(auth_config\.php|pending_ips\.json|whitelist_sources\.json|\.gitignore|NOTES\.md|README\.md)$">
+    Require all denied
+</FilesMatch>
+
+# R87b: Blanket-deny — sensitive extensions (JSON state files, logs, configs)
+# .txt feed dosyaları public consume (firewall consumer); JSON dosyaları sadece server-side.
+<FilesMatch "\.(json|log|md|bak|backup|save|swp|sample|sql|env)$">
+    Require all denied
+</FilesMatch>
+
+# R87b: Allow-list — explicitly public JSON files (default: boş; ihtiyaç olursa <Files "x.json"> ekle)
+
+# P1b: Asset cache — immutable 1-yıl cache for CSS/JS/font/image (Cache-Control busting versioned URL ile yapılır)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|woff|woff2|ttf|svg|png|jpg|jpeg|gif|ico|webp)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+# .git/ erişimini engelle
+RedirectMatch 403 ^/blacklist/cyberwebeyeos/\.git(/|$)
+
+# Feed dosyaları için doğru content-type + no-cache
+<FilesMatch "\.txt$">
+    Header set Content-Type "text/plain; charset=utf-8"
+    Header set Cache-Control "no-cache, must-revalidate"
+</FilesMatch>
+
+# Directory index — login ya da admin'e yönlendirsin (index.php zaten yapıyor)
+DirectoryIndex index.php
+
+# R40 (T3.5): TAXII 2.1 endpoint rewrite — /taxii2/* → taxii.php?path=*
+RewriteEngine On
+RewriteRule ^taxii2/?(.*)$ taxii.php?path=$1 [QSA,L]

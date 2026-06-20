@@ -1,0 +1,24 @@
+{
+    "email": {
+        "enabled": false,
+        "to": "",
+        "from": "noreply@example.com",
+        "subject_prefix": "[CWE-TIP]"
+    },
+    "webhook": {
+        "enabled": false,
+        "url": "",
+        "headers": []
+    },
+    "events": {
+        "blacklist_add": false,
+        "blacklist_delete": false,
+        "whitelist_add": false,
+        "user_create": false,
+        "user_delete": false,
+        "user_password_change": false,
+        "source_fetch_failed": false,
+        "csv_import": false,
+        "api_ingest": false
+    }
+}
