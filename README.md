@@ -2,26 +2,36 @@
 
 A self-hosted threat intelligence panel for managing IP/domain blacklists, CVE watchlists, and IoC pivoting.
 
-## Quick Start (Docker)
+## Quick Start
 
-**Requirements:** Docker + Docker Compose
+### Step 1 — Install Docker (if not already installed)
+
+```bash
+# Ubuntu / Debian
+sudo apt install docker.io docker-compose-v2 -y
+sudo systemctl enable --now docker
+```
+
+### Step 2 — Run
 
 ```bash
 git clone https://github.com/altanmelihhh-web/BlockHarbor.git
 cd BlockHarbor
-cp .env.example .env
-docker compose up -d --build
+bash bin/docker-up.sh
 ```
+
+The script:
+- Creates `.env` from `.env.example` automatically
+- Detects port conflicts and prompts for a different port if needed
+- Builds the image and starts the container
 
 Access at: **http://localhost:8090/blacklist/cyberwebeyeos/**
 
 Default login: `admin` / `admin` — change your password immediately after first login.
 
-To use a different host port:
-```bash
-# Edit HTTP_PORT in .env, then:
-docker compose up -d --build
-```
+> **Non-interactive / CI:** `bash bin/docker-up.sh --auto-port` (skips prompts, auto-picks next free port)
+
+---
 
 ## Configuration
 
@@ -49,12 +59,12 @@ All runtime data (feeds, blacklist, state files) is stored in the `cwe_data` Doc
 To reset all data:
 ```bash
 docker compose down -v
-docker compose up -d --build
+bash bin/docker-up.sh
 ```
 
 ## Scheduled Jobs (Cron)
 
-Feed fetching and CVE sync run via cron inside the container. The crontab is at `cron/cyberwebeyeos-tip`. To install on the host instead:
+Feed fetching and CVE sync are defined in `cron/cyberwebeyeos-tip`. To install on the host:
 
 ```bash
 sudo cp cron/cyberwebeyeos-tip /etc/cron.d/cyberwebeyeos-tip
