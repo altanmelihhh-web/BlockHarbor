@@ -12,6 +12,16 @@
  * Çıktı kod: 0 = expired yok, 1 = expired var, 2 = hata
  */
 
+// Maintenance script: CLI only. It is reachable over HTTP in a default install
+// but has no session handling, so refuse a web request outright rather than
+// running a migration (or dereferencing $argv, which is undefined here).
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "This maintenance script runs from the command line only.\n";
+    exit;
+}
+
 require_once __DIR__ . '/ioc_helpers.php';
 require_once __DIR__ . '/audit_log.php';
 
