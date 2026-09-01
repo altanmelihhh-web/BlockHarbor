@@ -55,5 +55,10 @@ services:
       - key: CWE_API_KEYS
         value: '[{"key":"demo-read-only-key","role":"viewer","owner":"public demo"}]'
 
+      # The USOM sync service is a separate deployment and is not part of this
+      # repository; leaving this empty hides its sync controls.
+      - key: CWE_USOM_BASE
+        value: ""
+
       - key: CWE_CONTACT_EMAIL
         value: "demo@example.com"

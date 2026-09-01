@@ -2976,7 +2976,13 @@ if ($__is_fragment) {
     ['file'=>'ip6-list.txt',     'label'=>'IPv6',          'sub'=>'Zararlı IPv6 adresleri', 'color'=>'#8b5cf6'],
     ['file'=>'ip6net-list.txt',  'label'=>'IPv6 Subnet',   'sub'=>'Zararlı IPv6 subnetler', 'color'=>'#ec4899'],
   ];
-  $usom_base = '/blacklist/usom';
+  // The USOM sync service is a separate deployment that is not part of this
+  // repository. Set CWE_USOM_BASE to its mount point to enable this panel's
+  // links and sync controls; left unset (the default, and the case in the
+  // public demo) the feed files are still listed but the controls that would
+  // call an endpoint this repo does not ship are hidden.
+  $usom_base = rtrim((string)getenv('CWE_USOM_BASE'), '/');
+  $usom_enabled = $usom_base !== '';
   foreach ($usom_feeds as &$_f) {
     $p = '/var/www/html/usom/' . $_f['file'];
     $_f['count'] = 0;
@@ -2995,6 +3001,7 @@ if ($__is_fragment) {
   }
   unset($_f);
   ?>
+  <script>const USOM_BASE = <?= json_encode($usom_base) ?>; const USOM_ENABLED = <?= $usom_enabled ? 'true' : 'false' ?>;</script>
   <div class="tab-panel" id="tab-usom">
     <!-- USOM Status Strip -->
     <div class="kpi-row">
@@ -4956,9 +4963,9 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
           </div>
           <div class="nav-list">
             <a href="cyberwebeyeosblacklist.txt" target="_blank"><i class="fas fa-file-alt nav-icon"></i> Cyberwebeyeos Feed</a>
-            <a href="/blacklist/usom/url-list.txt" target="_blank"><i class="fas fa-file-alt nav-icon"></i> USOM Combined</a>
-            <a href="/blacklist/usom/domain-list.txt" target="_blank"><i class="fas fa-file-alt nav-icon"></i> USOM Domain</a>
-            <a href="/blacklist/usom/ip-list.txt" target="_blank"><i class="fas fa-file-alt nav-icon"></i> USOM IPv4</a>
+            <a href="<?= htmlspecialchars($usom_base . '/url-list.txt') ?>" target="_blank"><i class="fas fa-file-alt nav-icon"></i> USOM Combined</a>
+            <a href="<?= htmlspecialchars($usom_base . '/domain-list.txt') ?>" target="_blank"><i class="fas fa-file-alt nav-icon"></i> USOM Domain</a>
+            <a href="<?= htmlspecialchars($usom_base . '/ip-list.txt') ?>" target="_blank"><i class="fas fa-file-alt nav-icon"></i> USOM IPv4</a>
           </div>
         </div>
 
@@ -5245,13 +5252,14 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
     }
 
     document.getElementById('usom-save-sch')?.addEventListener('click', async () => {
+      if (!USOM_ENABLED) { usomMsg('USOM sync servisi bu kurulumda yapılandırılmamış (CWE_USOM_BASE).', 'err'); return; }
       const s = usomCollectSchedule();
       if (s.incremental.enabled && (s.incremental.days.length === 0 || s.incremental.hours.length === 0)) {
         usomMsg('Artımlı sync için en az bir gün ve bir saat seçmelisin.', 'err');
         return;
       }
       try {
-        const r = await fetch('/blacklist/usom/schedule.php?action=save', {
+        const r = await fetch(USOM_BASE + '/schedule.php?action=save', {
           method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(s),
         });
         const j = await r.json();
@@ -5260,10 +5268,11 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
     });
 
     async function usomRun(full) {
+      if (!USOM_ENABLED) { usomMsg('USOM sync servisi bu kurulumda yapılandırılmamış (CWE_USOM_BASE).', 'err'); return; }
       if (!confirm(full ? 'Tam sync ~20 dakika sürer. Başlatılsın mı?' : 'Artımlı sync başlatılsın mı?')) return;
       usomMsg('Sync başlatılıyor…', 'info');
       try {
-        const r = await fetch('/blacklist/usom/schedule.php?action=run', {
+        const r = await fetch(USOM_BASE + '/schedule.php?action=run', {
           method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({full}),
         });
         const j = await r.json();
