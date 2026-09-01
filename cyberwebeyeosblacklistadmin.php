@@ -3177,6 +3177,13 @@ if ($__is_fragment) {
   $srcs_config = @json_decode(@file_get_contents(__DIR__ . '/sources_config.json'), true) ?? ['sources'=>[],'settings'=>[]];
   $configured_sources = $srcs_config['sources'] ?? [];
   $settings_data = $srcs_config['settings'] ?? [];
+  // Paths in sources_config.json may still carry the old /var/www/html prefix.
+  // Resolve them so the panel shows where the files actually are.
+  foreach (['combined_file', 'whitelist_file', 'log_file', 'blacklist_file', 'conflict_log'] as $__k) {
+      if (!empty($settings_data[$__k])) {
+          $settings_data[$__k] = cwe_resolve_path((string)$settings_data[$__k]);
+      }
+  }
 
   // Crontab durumu (cyberwebeyeos için)
   $crontab_active = false;

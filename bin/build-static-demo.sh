@@ -183,11 +183,34 @@ cat > "$OUT/static-demo.js" <<'JSEOF'
     }, 404);
   };
 
-  // Neutralise form posts — there is nothing to post to.
+  // Neutralise form posts — there is nothing to post to. A non-blocking toast
+  // rather than alert(): a modal dialog freezes the page for anyone driving it
+  // programmatically and is poor UX besides.
+  function toast(msg) {
+    var el = document.getElementById('bh-static-toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'bh-static-toast';
+      el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);' +
+        'z-index:2147483647;background:#1e293b;color:#fff;padding:11px 18px;border-radius:8px;' +
+        'font:500 13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;max-width:min(90vw,32rem);' +
+        'box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .18s';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.opacity = '1';
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.style.opacity = '0'; }, 4000);
+  }
+
   document.addEventListener('submit', function (e) {
     e.preventDefault();
-    alert('This is a static snapshot. Forms are disabled; run the application locally to use them.');
+    toast('Static snapshot — forms are disabled. Run the application locally to use them.');
   }, true);
+
+  // Same for confirm(): it blocks too, and several handlers gate on it.
+  window.confirm = function () { return false; };
+  window.alert = function (m) { toast(String(m)); };
 })();
 JSEOF
 
