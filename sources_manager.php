@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 // Standalone auth (CWE_BLACKLIST_SESSION)
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
@@ -13,7 +14,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 header('Content-Type: text/html; charset=utf-8');
 
-$config_file = '/var/www/html/sources_config.json';
+$config_file = cwe_app_path('sources_config.json');
 
 // Config dosyasını oku
 function load_config() {
@@ -47,7 +48,7 @@ function add_source($data) {
         'type' => $data['type'],
         'update_interval' => (int)$data['update_interval'],
         'enabled' => isset($data['enabled']),
-        'output_file' => '/var/www/html/' . preg_replace('/[^a-z0-9_-]/i', '_', strtolower($data['name'])) . '.txt',
+        'output_file' => cwe_app_path('') . preg_replace('/[^a-z0-9_-]/i', '_', strtolower($data['name'])) . '.txt',
         'description' => $data['description'],
         'default_confidence' => $default_conf,
         'last_update' => null,

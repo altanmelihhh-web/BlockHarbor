@@ -12,6 +12,7 @@
  *   GET  ?action=audit&limit=N  → audit log
  */
 
+require_once __DIR__ . '/app_paths.php';
 define('API_BASE', __DIR__);
 require_once API_BASE . '/audit_log.php';
 require_once API_BASE . '/ioc_helpers.php';
@@ -117,7 +118,7 @@ switch ($action) {
         _api_require_role(['admin','operator','viewer']);
         $manual = _api_read_pipe_file(API_BASE . '/blacklist.txt', 'manual');
         $wl     = _api_read_wl_file(API_BASE . '/whitelist.txt');
-        $usom_state = @json_decode(@file_get_contents('/var/www/html/usom/usom-state.json'), true) ?? [];
+        $usom_state = @json_decode(@file_get_contents(cwe_app_path('usom/usom-state.json')), true) ?? [];
         $pending = @json_decode(@file_get_contents(API_BASE . '/pending_ips.json'), true)['pending_ips'] ?? [];
         echo json_encode(['ok'=>true, 'stats'=>[
             'manual_count' => count($manual),

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 // Cyberwebeyeos Multiple Manual Lists CRUD handler
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
@@ -221,7 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // R71 (S7-T5): Empty-only delete check
-            $file_path = $found['file'] ?? '';
+            $file_path = cwe_resolve_path($found['file'] ?? '');
             if ($file_path !== '' && file_exists($file_path)) {
                 $entry_count = count_list_entries($file_path);
                 if ($entry_count > 0) {

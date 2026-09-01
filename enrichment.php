@@ -25,6 +25,7 @@
  *   }
  */
 
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
 
@@ -226,7 +227,7 @@ function _enr_via_ip_api(string $lookup): ?array {
  * Provider 2: MaxMind mmdb (geoip2/geoip2 composer package required).
  */
 function _enr_via_mmdb(string $lookup): ?array {
-    $geoip_dir = '/var/www/html/geoip';
+    $geoip_dir = cwe_app_path('geoip');
     $city_db = $geoip_dir . '/GeoLite2-City.mmdb';
     $asn_db  = $geoip_dir . '/GeoLite2-ASN.mmdb';
     if (!file_exists($city_db) || !class_exists('\\GeoIp2\\Database\\Reader')) return null;

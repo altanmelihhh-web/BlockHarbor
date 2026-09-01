@@ -1,9 +1,10 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
 require_role(['admin','operator']);
-$file_path = "/var/www/html/blacklist.txt"; // Kara liste dosyası yolu
-$output_file = "/var/www/html/cyberwebeyeosblacklist.txt"; // cyberwebeyeosblacklist.txt dosya yolu
+$file_path = cwe_app_path('blacklist.txt'); // Kara liste dosyası yolu
+$output_file = cwe_app_path('cyberwebeyeosblacklist.txt'); // cyberwebeyeosblacklist.txt dosya yolu
 
 // Seçilen IP'leri kontrol et
 if (isset($_POST['selected_ips']) && !empty($_POST['selected_ips'])) {

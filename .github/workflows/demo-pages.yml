@@ -1,0 +1,67 @@
+name: Static demo
+
+# Rebuilds the GitHub Pages demo from the application itself, so the published
+# snapshot never drifts from main. bin/build-static-demo.sh boots the app in
+# demo mode, captures the read-only pages and the JSON the dashboard requests,
+# and injects a shim that answers fetch() from those captures.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: zip, intl, mbstring, xml, gd
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress
+
+      - name: Bootstrap runtime state
+        run: sh bin/init-state.sh
+
+      - name: Build the static snapshot
+        run: bash bin/build-static-demo.sh
+
+      - name: Check the snapshot is self-contained
+        run: |
+          test -f static-demo/index.html
+          test -f static-demo/demo-data.js
+          test -f static-demo/static-demo.js
+          # The snapshot must not carry the seeded dataset's source files or
+          # any credential material.
+          ! grep -rlE '\$2[aby]\$[0-9]{2}\$' static-demo/ || (echo "hash found in snapshot" && exit 1)
+          echo "pages: $(find static-demo -name '*.html' | wc -l)"
+          echo "captured responses: $(ls static-demo/_api/*.json | wc -l)"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: static-demo
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

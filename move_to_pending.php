@@ -3,6 +3,7 @@
  * Mevcut combined file'daki bir IP'yi pending hale getirir ve dosyadan kaldırır
  */
 
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
 require_role(['admin','operator']);
@@ -29,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ip']) && isset($_POST
 
         if ($token) {
             // IP'yi combined file'dan kaldır
-            $combined_file = '/var/www/html/cyberwebeyeosblacklist.txt';
+            $combined_file = cwe_app_path('cyberwebeyeosblacklist.txt');
             if (file_exists($combined_file)) {
                 $lines = file($combined_file, FILE_IGNORE_NEW_LINES);
                 $new_lines = [];

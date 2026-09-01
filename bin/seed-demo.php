@@ -176,19 +176,19 @@ file_put_contents("$root/cve_state.json", json_encode($cves, JSON_PRETTY_PRINT |
 
 // ---------------------------------------------------------- pending_ips.json --
 
+// Schema must match pending_ips_helper.php: {"pending_ips": [{id, ip, source,
+// created_at, status}]}.
 $pending = [];
 for ($i = 0; $i < 7; $i++) {
     $pending[] = [
-        'value' => '198.51.100.' . (200 + $i),
-        'type' => 'ip-src',
-        'comment' => $comments[$i % count($comments)],
-        'requested_by' => $actors[$i % count($actors)],
-        'requested_at' => date('Y-m-d H:i:s', time() - $i * 7200),
-        'tlp' => $TLP[$i % 4],
-        'confidence' => 50 + $i * 5,
+        'id'         => bin2hex(random_bytes(16)),
+        'ip'         => '198.51.100.' . (200 + $i),
+        'source'     => $sources[$i % count($sources)],
+        'created_at' => date('Y-m-d H:i:s', time() - $i * 7200),
+        'status'     => 'pending',
     ];
 }
-file_put_contents("$root/pending_ips.json", json_encode(['pending' => $pending], JSON_PRETTY_PRINT));
+file_put_contents("$root/pending_ips.json", json_encode(['pending_ips' => $pending], JSON_PRETTY_PRINT));
 
 // ------------------------------------------------------ customer_assets.json --
 

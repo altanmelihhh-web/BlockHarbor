@@ -60,13 +60,13 @@ rm -rf "$OUT"; mkdir -p "$OUT/_api"
 # ---------------------------------------------------------------- HTML pages --
 # Only read-only views. Everything that mutates state is refused by demo mode
 # anyway, and has no meaning in a snapshot.
+# audit_log.php is a library (it only defines helpers) and search.php is a JSON
+# API — neither renders a page, so both are captured as API responses instead.
 PAGES=(
     cyberwebeyeosblacklistadmin.php
     feed_health.php
-    audit_log.php
     whitelist-readonly.php
     verify_audit.php
-    search.php
 )
 echo "==> Capturing pages"
 for page in "${PAGES[@]}"; do

@@ -3,7 +3,8 @@
  * Bekleyen (Pending) IP'leri yönetmek için helper fonksiyonlar
  */
 
-define('PENDING_IPS_FILE', '/var/www/html/pending_ips.json');
+require_once __DIR__ . '/app_paths.php';
+define('PENDING_IPS_FILE', cwe_app_path('pending_ips.json'));
 
 /**
  * Bekleyen IP'ler dosyasını yükler
@@ -166,7 +167,7 @@ function reject_pending_ip($token) {
  * @param string $source Kaynak
  */
 function add_ip_to_manual_blacklist($ip, $source) {
-    $blacklist_file = '/var/www/html/blacklist.txt';
+    $blacklist_file = cwe_app_path('blacklist.txt');
     $timestamp = date('Y-m-d H:i:s');
 
     // CIDR notation ekle

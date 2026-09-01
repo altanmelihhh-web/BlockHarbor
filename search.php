@@ -4,6 +4,7 @@
  * Tüm IoC kaynaklarında (blacklist + whitelist + pending + USOM + dinamik listeler) arama yapar.
  * Cevap JSON.
  */
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/ioc_helpers.php';
 header('Content-Type: application/json; charset=utf-8');
@@ -88,7 +89,7 @@ _search_file(__DIR__ . '/cyberwebeyeosblacklist.txt', 'Feed', 'blacklist', $resu
 $usom_files = ['url-list.txt','domain-list.txt','ip-list.txt','url-only-list.txt','ip6-list.txt','ip6net-list.txt'];
 foreach ($usom_files as $uf) {
     if (count($results) >= $max) break;
-    $p = '/var/www/html/usom/' . $uf;
+    $p = cwe_app_path('usom/') . $uf;
     if (!file_exists($p)) continue;
     // Büyük dosya için fgrep
     $cmd = 'fgrep -i ' . escapeshellarg($q) . ' ' . escapeshellarg($p) . ' 2>/dev/null | head -5';

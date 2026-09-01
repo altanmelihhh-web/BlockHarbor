@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -12,7 +13,7 @@ if (!isset($_SESSION['message'])) {
 require_once __DIR__ . '/vendor/autoload.php';
 
 // Settings'i oku
-$config_file = "/var/www/html/settings_config.json";
+$config_file = cwe_app_path('settings_config.json');
 $settings = [];
 if (file_exists($config_file)) {
     $settings = json_decode(file_get_contents($config_file), true);
@@ -24,7 +25,7 @@ $instance_name = isset($settings['instance_name']) ? $settings['instance_name'] 
 $readonly_mode = true;
 
 // Dosya yolları
-$file_path = "/var/www/html/blacklist.txt";               // Manuel güncelleme için
+$file_path = cwe_app_path('blacklist.txt');               // Manuel güncelleme için
 
 // Bildirimleri göster
 function display_message() {
@@ -166,7 +167,7 @@ function is_cyberwebeyeos_ip($ip) {
     $cyberwebeyeos_blocks = isset($settings['cyberwebeyeos_blocks']) ? $settings['cyberwebeyeos_blocks'] : [];
     
     // Whitelist dosyasını oku ve bloklara ekle
-    $whitelist_path = "/var/www/html/whitelist.txt";
+    $whitelist_path = cwe_app_path('whitelist.txt');
     if (file_exists($whitelist_path)) {
         $whitelist_content = file($whitelist_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($whitelist_content as $line) {
@@ -612,7 +613,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['excel_file']) && !$re
 
 // G�ncellenmis write_to_cyberwebeyeos_blacklist fonksiyonu
 function write_to_cyberwebeyeos_blacklist($ip, $fqdn) {
-    $output_file = '/var/www/html/cyberwebeyeosblacklist.txt';
+    $output_file = cwe_app_path('cyberwebeyeosblacklist.txt');
     
     // Mevcut i�erigi oku ve sadece IP'leri al
     $existing_ips = [];
@@ -653,7 +654,7 @@ function write_to_cyberwebeyeos_blacklist($ip, $fqdn) {
 // G�ncellenmis sync_manual_blacklist_to_cyberwebeyeos fonksiyonu
 function sync_manual_blacklist_to_cyberwebeyeos() {
     global $file_path;
-    $output_file = '/var/www/html/cyberwebeyeosblacklist.txt';
+    $output_file = cwe_app_path('cyberwebeyeosblacklist.txt');
     
     // Manuel listeyi oku
     $manual_items = file_exists($file_path) ? file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
@@ -705,7 +706,7 @@ function sync_manual_blacklist_to_cyberwebeyeos() {
 
 // Mevcut dosyayi temizlemek i�in yardimci fonksiyon (bir kerelik kullanim)
 function clean_existing_cyberwebeyeos_file() {
-    $output_file = '/var/www/html/cyberwebeyeosblacklist.txt';
+    $output_file = cwe_app_path('cyberwebeyeosblacklist.txt');
     
     if (file_exists($output_file)) {
         $lines = file($output_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -737,7 +738,7 @@ function clean_existing_cyberwebeyeos_file() {
 
 // Log dosyasının son satırlarını al
 function get_recent_logs($lines = 10) {
-    $log_file = '/var/www/html/ip_blocklist.log';
+    $log_file = cwe_app_path('ip_blocklist.log');
 
     if (!file_exists($log_file)) {
         return [];
@@ -751,7 +752,7 @@ function get_recent_logs($lines = 10) {
 
 // Conflict log'larını al
 function get_conflict_logs($lines = 5) {
-    $conflict_log = '/var/www/html/conflict_log.txt';
+    $conflict_log = cwe_app_path('conflict_log.txt');
 
     if (!file_exists($conflict_log)) {
         return [];

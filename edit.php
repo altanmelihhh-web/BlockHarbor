@@ -1,9 +1,10 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
 require_once __DIR__ . '/ioc_helpers.php';
 require_role(['admin','operator']);
-$file_path = "/var/www/html/blacklist.txt";
+$file_path = cwe_app_path('blacklist.txt');
 
 // IP adresini almak
 $ip_to_edit = isset($_GET['ip']) ? trim($_GET['ip']) : '';

@@ -23,6 +23,7 @@
  * v1 dokunulmadı; paralel test için. Beğenilirse v1 deprecate edilir.
  */
 
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
 require_once __DIR__ . '/ioc_helpers.php';
@@ -166,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['v2_add'])) {
 // KPI sayıları (v1 cache fonksiyonu mevcut değilse basit fallback)
 // ---------------------------------------------------------------------------
 function v2_count(string $f): int {
+    $f = cwe_resolve_path($f);
     if (function_exists('_cwe_cached_count')) return _cwe_cached_count($f);
     if (!is_file($f)) return 0;
     $n = 0; $fh = @fopen($f, 'r'); if (!$fh) return 0;
@@ -182,6 +184,7 @@ $kpi_feeds    = count($groups['external']);
 // Aktif listenin satırlarını oku (search + paginate)
 // ---------------------------------------------------------------------------
 function v2_read_entries(string $file, string $search, int $page, int $per_page): array {
+    $file = cwe_resolve_path($file);
     if (!is_file($file)) return ['rows'=>[], 'total'=>0];
     $rows = [];
     $fh = fopen($file, 'r');

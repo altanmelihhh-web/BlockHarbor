@@ -24,7 +24,7 @@ if (!isset($_SESSION['message'])) {
 require_once __DIR__ . '/vendor/autoload.php';
 
 // Settings'i oku
-$config_file = "/var/www/html/settings_config.json";
+$config_file = cwe_app_path('settings_config.json');
 $settings = [];
 if (file_exists($config_file)) {
     $settings = json_decode(file_get_contents($config_file), true);
@@ -33,7 +33,7 @@ $logo = isset($settings['logo']) && !empty($settings['logo']) ? $settings['logo'
 $instance_name = isset($settings['instance_name']) ? $settings['instance_name'] . ' - Admin Panel' : 'Cyberwebeyeos Blacklist - Admin Panel';
 
 // Dosya yolları
-$file_path = "/var/www/html/blacklist.txt";               // Manuel güncelleme için
+$file_path = cwe_app_path('blacklist.txt');               // Manuel güncelleme için
 
 // C3: Resolve target_list → file_path BEFORE any POST handler uses $file_path
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['target_list'])) {
@@ -201,7 +201,7 @@ function is_cyberwebeyeos_ip($ip) {
     $cyberwebeyeos_blocks = isset($settings['cyberwebeyeos_blocks']) ? $settings['cyberwebeyeos_blocks'] : [];
     
     // Whitelist dosyasını oku ve bloklara ekle
-    $whitelist_path = "/var/www/html/whitelist.txt";
+    $whitelist_path = cwe_app_path('whitelist.txt');
     if (file_exists($whitelist_path)) {
         $whitelist_content = file($whitelist_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($whitelist_content as $line) {
@@ -507,7 +507,7 @@ if ($search_ip) {
     if ($__sprint7_list_file && $__sprint7_list_kind !== null) {
         $__sprint7_list_slug = htmlspecialchars($list_filter);
         $__sprint7_list_name_esc = htmlspecialchars($__sprint7_list_name ?? $list_filter);
-        $__sprint7_file_esc = htmlspecialchars(str_replace('/var/www/html/', cwe_base_slash(), $__sprint7_list_file ?? ''));
+        $__sprint7_file_esc = htmlspecialchars(str_replace(cwe_app_path(''), cwe_base_slash(), $__sprint7_list_file ?? ''));
         $__sprint7_count = count($filtered_items ?? $combined_items);
         $__sprint7_is_manual = ($__sprint7_list_kind === 'manual' || $__sprint7_list_kind === 'system');
         echo "<div class='sprint7-list-toolbar' style='display:flex;gap:8px;align-items:center;margin:0 0 10px;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'>";
@@ -1042,7 +1042,7 @@ function convert_ip_to_prefix($ip) {
 // Manuel senkronizasyon (sadece buton tıklandığında çalışır)
 // Whitelist add/delete (inline — kullanıcı admin sayfasında kalır)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['wl_add']) || isset($_POST['wl_delete']))) {
-    $wl_file = '/var/www/html/whitelist.txt';
+    $wl_file = cwe_app_path('whitelist.txt');
     $msgs = [];
 
     if (!empty($_POST['wl_add'])) {
@@ -1288,7 +1288,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['csv_file']) && $_FILE
                 'valid_until' => cwe_default_valid_until(90),
             ];
             file_put_contents($file_path, cwe_format_blacklist_entry($entry_arr) . "\n", FILE_APPEND);
-            file_put_contents('/var/www/html/cyberwebeyeosblacklist.txt', $val . "\n", FILE_APPEND);
+            file_put_contents(cwe_app_path('cyberwebeyeosblacklist.txt'), $val . "\n", FILE_APPEND);
             $imported++;
         }
         fclose($fh);
@@ -1393,7 +1393,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['excel_file'])) {
 
 // G�ncellenmis write_to_cyberwebeyeos_blacklist fonksiyonu
 function write_to_cyberwebeyeos_blacklist($ip, $fqdn) {
-    $output_file = '/var/www/html/cyberwebeyeosblacklist.txt';
+    $output_file = cwe_app_path('cyberwebeyeosblacklist.txt');
     
     // Mevcut i�erigi oku ve sadece IP'leri al
     $existing_ips = [];
@@ -1434,7 +1434,7 @@ function write_to_cyberwebeyeos_blacklist($ip, $fqdn) {
 // G�ncellenmis sync_manual_blacklist_to_cyberwebeyeos fonksiyonu
 function sync_manual_blacklist_to_cyberwebeyeos() {
     global $file_path;
-    $output_file = '/var/www/html/cyberwebeyeosblacklist.txt';
+    $output_file = cwe_app_path('cyberwebeyeosblacklist.txt');
     
     // Manuel listeyi oku
     $manual_items = file_exists($file_path) ? file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
@@ -1486,7 +1486,7 @@ function sync_manual_blacklist_to_cyberwebeyeos() {
 
 // Mevcut dosyayi temizlemek i�in yardimci fonksiyon (bir kerelik kullanim)
 function clean_existing_cyberwebeyeos_file() {
-    $output_file = '/var/www/html/cyberwebeyeosblacklist.txt';
+    $output_file = cwe_app_path('cyberwebeyeosblacklist.txt');
     
     if (file_exists($output_file)) {
         $lines = file($output_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -1519,7 +1519,7 @@ function clean_existing_cyberwebeyeos_file() {
 
 // Log dosyasının son satırlarını al
 function get_recent_logs($lines = 10) {
-    $log_file = '/var/www/html/ip_blocklist.log';
+    $log_file = cwe_app_path('ip_blocklist.log');
 
     if (!file_exists($log_file)) {
         return [];
@@ -1533,7 +1533,7 @@ function get_recent_logs($lines = 10) {
 
 // Conflict log'larını al
 function get_conflict_logs($lines = 5) {
-    $conflict_log = '/var/www/html/conflict_log.txt';
+    $conflict_log = cwe_app_path('conflict_log.txt');
 
     if (!file_exists($conflict_log)) {
         return [];
@@ -2395,14 +2395,14 @@ function _cwe_count_data_lines($path) {
     }
     return $n;
 }
-$manual_count    = _cwe_cached_count("/var/www/html/blacklist.txt");
-$feed_count      = _cwe_cached_count("/var/www/html/cyberwebeyeosblacklist.txt");
-$whitelist_count = _cwe_cached_count("/var/www/html/whitelist.txt");
+$manual_count    = _cwe_cached_count(cwe_app_path('blacklist.txt'));
+$feed_count      = _cwe_cached_count(cwe_app_path('cyberwebeyeosblacklist.txt'));
+$whitelist_count = _cwe_cached_count(cwe_app_path('whitelist.txt'));
 $current_user    = isset($_SESSION['cwe_user']) ? $_SESSION['cwe_user'] : 'admin';
 
 // Whitelist data (kendi tab içinde gösterilecek)
 $whitelist_items = []; // each: ['entry'=>..., 'date'=>..., 'user'=>..., 'comment'=>...]
-$wl_path = '/var/www/html/whitelist.txt';
+$wl_path = cwe_app_path('whitelist.txt');
 if (file_exists($wl_path)) {
     foreach (file($wl_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $l) {
         $t = trim($l);
@@ -2419,7 +2419,7 @@ if (file_exists($wl_path)) {
 }
 
 // USOM state
-$usom_state = @json_decode(@file_get_contents('/var/www/html/usom/usom-state.json'), true) ?? [];
+$usom_state = @json_decode(@file_get_contents(cwe_app_path('usom/usom-state.json')), true) ?? [];
 $usom_last_sync = $usom_state['last_sync'] ?? '—';
 $usom_total     = $usom_state['file_entries'] ?? 0;
 $usom_type      = $usom_state['sync_type'] ?? null;
@@ -2605,6 +2605,7 @@ function cwe_msg_escape(string $text): string {
  * Cache: /tmp/cwe_cnt/<basename>.json — {"mtime": int, "count": int}
  */
 function _cwe_cached_count(string $file_path): int {
+    $file_path = cwe_resolve_path($file_path);
     if (!is_file($file_path)) return 0;
     $cache_dir = sys_get_temp_dir() . '/cwe_cnt';
     if (!is_dir($cache_dir)) { @mkdir($cache_dir, 0777, true); @chmod($cache_dir, 0777); }
@@ -2964,7 +2965,7 @@ if ($__is_fragment) {
   <?php
   // USOM verisi
   $usom_full = $usom_state['file_entries'] ?? 0;
-  $usom_schedule_data = @json_decode(@file_get_contents('/var/www/html/usom/usom-schedule.json'), true) ?? [];
+  $usom_schedule_data = @json_decode(@file_get_contents(cwe_app_path('usom/usom-schedule.json')), true) ?? [];
   $usom_full_sch = $usom_schedule_data['full'] ?? ['enabled'=>true,'type'=>'monthly','day_of_month'=>1,'day_of_week'=>0,'hour'=>1,'minute'=>0];
   $usom_inc_sch  = $usom_schedule_data['incremental'] ?? ['enabled'=>true,'days'=>[0,1,2,3,4,5,6],'hours'=>[7,13,19],'minute'=>0];
   $usom_day_names = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
@@ -2984,7 +2985,7 @@ if ($__is_fragment) {
   $usom_base = rtrim((string)getenv('CWE_USOM_BASE'), '/');
   $usom_enabled = $usom_base !== '';
   foreach ($usom_feeds as &$_f) {
-    $p = '/var/www/html/usom/' . $_f['file'];
+    $p = cwe_app_path('usom/') . $_f['file'];
     $_f['count'] = 0;
     if (file_exists($p)) {
       $fh = @fopen($p, 'r');

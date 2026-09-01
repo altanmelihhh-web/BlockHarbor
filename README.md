@@ -114,13 +114,27 @@ enough to audit.
 
 ## Live demo
 
-A read-only public demo runs from `render.yaml` (Render, free plan):
+**[altanmelihhh-web.github.io/BlockHarbor](https://altanmelihhh-web.github.io/BlockHarbor/)**
 
 | | |
 |---|---|
-| Login | `demo` / `demo` |
 | Data | synthetic — RFC 5737 addresses only, unassigned CVE identifiers |
 | Writes | disabled |
+| Backend | none — see below |
+
+The published demo is a static snapshot. `bin/build-static-demo.sh` boots the
+real application in demo mode, captures the read-only pages and every JSON
+response the dashboard asks for, then injects a shim that answers `fetch()` from
+those captures. A GitHub Actions workflow rebuilds it on every push to `main`,
+so the snapshot cannot drift from the code.
+
+The trade is deliberate: a snapshot loads instantly and stays up, where a free
+container would cold-start for the better part of a minute on the first visit.
+Navigation, enrichment, provenance, pivots and chain verification all show real
+captured output; an arbitrary lookup that was not captured says so.
+
+`render.yaml` is also included for anyone who wants the full dynamic
+application — Render blueprint, free plan, `demo`/`demo`.
 
 Demo mode is switched on with `DEMO_MODE=true` and is enforced by
 `demo_mode.php`, which PHP loads ahead of every request via `auto_prepend_file`.

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/blacklist_admin_auth.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -26,7 +27,7 @@ function display_message() {
 }
 
 function display_whitelist($search_ip = '', $per_page = 10, $page = 1) {
-    $whitelist_path = "/var/www/html/whitelist.txt";
+    $whitelist_path = cwe_app_path('whitelist.txt');
     
     // Whitelist dosyasini oku
     $whitelist_items = [];
