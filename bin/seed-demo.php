@@ -209,6 +209,55 @@ file_put_contents("$root/users.json", json_encode(['users' => [[
     'last_login' => date('Y-m-d H:i:s'), 'active' => true,
 ]]], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
+// ------------------------------------------------ external feed contents --
+
+// feed_health_state.json advertises entry counts, and the sidebar counts the
+// lines of the actual feed files. Without these the panel showed "8 active
+// feeds" next to a row of zeros. Counts here match the health state above.
+$feed_files = [
+    'ci-badguys.txt'                        => ['ip',     15243],
+    'firehol_level1.txt'                    => ['cidr',    2914],
+    'spamhaus_drop.txt'                     => ['cidr',    1387],
+    'spamhaus_edrop.txt'                    => ['cidr',     412],
+    'stevenblack_hosts.txt'                 => ['host',   11902],
+    'malwarebazaar_recent_md5.txt'          => ['md5',      990],
+    'domain_dyn/urlhaus_domains.txt'        => ['domain',  8871],
+    'domain_dyn/usom_tr_cert_domain.txt'    => ['domain', 41207],
+];
+// Keep the generated files small enough to stay comfortable in git-less demo
+// containers while still looking like the real thing.
+$CAP = 1200;
+$tlds = ['example', 'test', 'invalid'];
+foreach ($feed_files as $name => [$kind, $claimed]) {
+    $path = "$root/$name";
+    @mkdir(dirname($path), 0775, true);
+    $n = min($claimed, $CAP);
+    $out = [
+        '# ' . $name . ' — synthetic demo data, not a real feed',
+        '# Toplam kayıt: ' . $n,
+    ];
+    for ($i = 0; $i < $n; $i++) {
+        switch ($kind) {
+            case 'ip':
+                $out[] = '198.51.100.' . (1 + $i % 254);
+                break;
+            case 'cidr':
+                $out[] = '203.0.113.' . (($i * 4) % 256) . '/30';
+                break;
+            case 'md5':
+                $out[] = md5("demo-feed-$name-$i");
+                break;
+            case 'host':
+                $out[] = '0.0.0.0 ads-' . $i . '.' . $tlds[$i % 3];
+                break;
+            default:
+                $out[] = 'malicious-' . dechex(crc32("$name$i")) . '.' . $tlds[$i % 3];
+        }
+    }
+    file_put_contents($path, implode("\n", $out) . "\n");
+}
+fwrite(STDOUT, sprintf("seed-demo: %d external feed files\n", count($feed_files)));
+
 // ------------------------------------------------- firewall-facing feed --
 
 // Rebuild the flat feed the same way the application does, so feed_health.php

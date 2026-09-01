@@ -218,12 +218,12 @@ JSEOF
 echo "==> Rewriting captured pages"
 php -r '
 $dir = $argv[1];
-$banner = "<div id=\"bh-static-banner\" style=\"position:sticky;top:0;z-index:99999;background:#1d4ed8;color:#fff;"
-        . "padding:9px 14px;font:600 13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;text-align:center;"
-        . "box-shadow:0 1px 4px rgba(0,0,0,.25)\">STATIC DEMO &mdash; synthetic data (RFC 5737), read-only. "
-        . "<span style=\"font-weight:400;opacity:.92\">Captured from the running application; there is no backend here. "
-        . "<a href=\"https://github.com/altanmelihhh-web/BlockHarbor\" style=\"color:#fff;text-decoration:underline\">Source</a>"
-        . "</span></div>";
+$banner = "<div id=\"bh-static-banner\" style=\"position:sticky;top:0;z-index:99999;"
+        . "background:#f1f5f9;color:#475569;border-bottom:1px solid #e2e8f0;padding:5px 14px;"
+        . "font:400 11.5px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;text-align:center\">"
+        . "Demo &middot; synthetic data, read-only &middot; "
+        . "<a href=\"https://github.com/altanmelihhh-web/BlockHarbor\" "
+        . "style=\"color:#475569;text-decoration:underline\">source</a></div>";
 foreach (glob("$dir/*.html") as $f) {
     $h = file_get_contents($f);
     // point internal .php links at the captured .html files
