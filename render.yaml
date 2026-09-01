@@ -20,12 +20,17 @@ services:
     region: frankfurt
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /blacklist/cyberwebeyeos/login.php
+    healthCheckPath: /login.php
     autoDeployTrigger: commit
     envVars:
       # --- demo safety switches -------------------------------------------
       - key: DEMO_MODE
         value: "true"
+
+      # Serve from the domain root instead of the historical
+      # /blacklist/cyberwebeyeos sub-path, so the demo URL is just the hostname.
+      - key: CWE_BASE_PATH
+        value: "/"
 
       # No admin credentials are provisioned. login.php refuses every path
       # other than demo/demo while DEMO_MODE is true, and auth_config.php
