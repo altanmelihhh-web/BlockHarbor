@@ -41,6 +41,12 @@ if ($value === '') {
 
 // R39 (T3.4): VirusTotal v3 lookup
 if ($action === 'vt') {
+    // DEMO MODE: answer from the stub before any key check or outbound call.
+    if (function_exists('demo_is_on') && demo_is_on()) {
+        require_once __DIR__ . '/ioc_helpers.php';
+        echo json_encode(demo_fake_virustotal($value, cwe_detect_type($value)), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     $cfg = @include __DIR__ . '/auth_config.php';
     $vt_key = trim($cfg['vt_api_key'] ?? '');
     if ($vt_key === '') {
@@ -63,6 +69,7 @@ if ($action === 'vt') {
     }
     // Tip → VT endpoint mapping
     $type = cwe_detect_type($value);
+
     $vt_endpoint = null;
     if (in_array($type, ['ip-src','ip-dst'], true)) {
         $base = $value; if (strpos($base, '/') !== false) $base = explode('/', $base)[0];
@@ -174,6 +181,11 @@ function _enr_country_flag(string $code): string {
  * Provider 1: ip-api.com (default).
  */
 function _enr_via_ip_api(string $lookup): ?array {
+    // DEMO MODE: never reach out to ip-api.com.
+    if (function_exists('demo_is_on') && demo_is_on()) {
+        return demo_fake_geo($lookup);
+    }
+
     $fields = 'status,message,country,countryCode,region,regionName,city,as,asname,isp,org,lat,lon,query';
     $url = 'http://ip-api.com/json/' . urlencode($lookup) . '?fields=' . urlencode($fields);
     $ch = curl_init($url);

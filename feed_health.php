@@ -16,6 +16,7 @@
  *   - Overall freshness (en eski feed)
  */
 
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/ioc_helpers.php';
 
 // Only render HTML/JSON HTTP responses when invoked over HTTP, not when required from CLI
@@ -101,7 +102,7 @@ if ($JSON_MODE) {
         'overall_status' => $overall['label'],
         'generated_at' => date('Y-m-d H:i:s'),
         'main_feed' => [
-            'url' => 'https://' . ($_SERVER['HTTP_HOST'] ?? 'host') . '/blacklist/cyberwebeyeos/cyberwebeyeosblacklist.txt',
+            'url' => 'https://' . ($_SERVER['HTTP_HOST'] ?? 'host') . cwe_url('cyberwebeyeosblacklist.txt'),
             'entries' => $main['entries'],
             'size_bytes' => $main['size'],
             'last_modified' => $main['mtime'],
@@ -120,7 +121,7 @@ if ($JSON_MODE) {
 header('Content-Type: text/html; charset=utf-8');
 $main_status = _status_label($main['age_seconds']);
 $bl_status = _status_label($bl['age_seconds']);
-$feed_url = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'host') . '/blacklist/cyberwebeyeos/cyberwebeyeosblacklist.txt';
+$feed_url = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'host') . cwe_url('cyberwebeyeosblacklist.txt');
 ?><!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -231,7 +232,7 @@ curl -sS <?= htmlspecialchars($feed_url) ?> -o /etc/firewall/cwe-blacklist.txt
   </div>
 
   <footer>
-    <p>API/Monitoring: <a href="?json">JSON endpoint</a> · Admin: <a href="/blacklist/cyberwebeyeos/">Yönetim Paneli</a></p>
+    <p>API/Monitoring: <a href="?json">JSON endpoint</a> · Admin: <a href="<?= htmlspecialchars(cwe_base_slash()) ?>">Yönetim Paneli</a></p>
     <p>© <?= date('Y') ?> Cyberwebeyeos — Threat Intelligence Platform</p>
   </footer>
 </div>

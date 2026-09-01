@@ -9,6 +9,7 @@
  * Login sonrası $_SESSION['cwe_role'] set edilir.
  */
 
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/audit_log.php';
 
 $cfg = require __DIR__ . '/auth_config.php';
@@ -17,7 +18,7 @@ session_name($cfg['session_name']);
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => $cfg['session_lifetime'],
-        'path'     => '/blacklist/cyberwebeyeos/',
+        'path'     => cwe_base_slash(),
         'secure'   => !empty($_SERVER['HTTPS']),
         'httponly' => true,
         'samesite' => 'Lax',
@@ -26,10 +27,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $error = '';
-$next = isset($_GET['next']) ? $_GET['next'] : '/blacklist/cyberwebeyeos/cyberwebeyeosblacklistadmin.php';
+$next = isset($_GET['next']) ? $_GET['next'] : cwe_url('cyberwebeyeosblacklistadmin.php');
 // next URL guard — sadece kendi path'imize redirect
-if (strpos($next, '/blacklist/cyberwebeyeos/') !== 0) {
-    $next = '/blacklist/cyberwebeyeos/cyberwebeyeosblacklistadmin.php';
+if (strpos($next, cwe_base_slash()) !== 0) {
+    $next = cwe_url('cyberwebeyeosblacklistadmin.php');
 }
 
 /**
@@ -75,23 +76,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $authed_user = null;
     $authed_role = null;
 
-    // 1) users.json kontrolü (password_hash olan kayıtlar için)
-    $u = _cwe_find_user($user);
-    if ($u && !empty($u['password_hash']) && !empty($u['active'])) {
-        if (password_verify($pass, $u['password_hash'])) {
-            $authed_user = $u['username'];
-            $authed_role = in_array($u['role'] ?? '', ['admin','operator','viewer'], true) ? $u['role'] : 'viewer';
-        }
-    }
+    $u = null;
 
-    // 2) Default user fallback (auth_config.php — geriye uyumluluk)
-    if (!$authed_user && $user === ($cfg['username'] ?? '') && password_verify($pass, $cfg['password_hash'] ?? '')) {
-        $authed_user = $cfg['username'];
-        // Default user'ın users.json'daki rolünü al, yoksa admin
-        if ($u && in_array($u['role'] ?? '', ['admin','operator','viewer'], true)) {
-            $authed_role = $u['role'];
-        } else {
-            $authed_role = 'admin';
+    if (function_exists('demo_is_on') && demo_is_on()) {
+        // DEMO MODE: both credential paths below are skipped entirely, so the
+        // default admin/admin fallback in auth_config.php can never
+        // authenticate on a public deployment. Only the read-only demo account
+        // is accepted, and it is always a viewer.
+        if ($user === 'demo' && hash_equals('demo', (string)$pass)) {
+            $authed_user = 'demo';
+            $authed_role = 'viewer';
+        }
+    } else {
+        // 1) users.json kontrolü (password_hash olan kayıtlar için)
+        $u = _cwe_find_user($user);
+        if ($u && !empty($u['password_hash']) && !empty($u['active'])) {
+            if (password_verify($pass, $u['password_hash'])) {
+                $authed_user = $u['username'];
+                $authed_role = in_array($u['role'] ?? '', ['admin','operator','viewer'], true) ? $u['role'] : 'viewer';
+            }
+        }
+
+        // 2) Default user fallback (auth_config.php — geriye uyumluluk)
+        if (!$authed_user && $user === ($cfg['username'] ?? '') && password_verify($pass, $cfg['password_hash'] ?? '')) {
+            $authed_user = $cfg['username'];
+            // Default user'ın users.json'daki rolünü al, yoksa admin
+            if ($u && in_array($u['role'] ?? '', ['admin','operator','viewer'], true)) {
+                $authed_role = $u['role'];
+            } else {
+                $authed_role = 'admin';
+            }
         }
     }
 

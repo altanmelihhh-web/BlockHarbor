@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 // Portal authentication kontrolü (session_start burada yapılıyor)
 require_once __DIR__ . '/blacklist_admin_auth.php';
 require_once __DIR__ . '/audit_log.php';
@@ -506,7 +507,7 @@ if ($search_ip) {
     if ($__sprint7_list_file && $__sprint7_list_kind !== null) {
         $__sprint7_list_slug = htmlspecialchars($list_filter);
         $__sprint7_list_name_esc = htmlspecialchars($__sprint7_list_name ?? $list_filter);
-        $__sprint7_file_esc = htmlspecialchars(str_replace('/var/www/html/', '/blacklist/cyberwebeyeos/', $__sprint7_list_file ?? ''));
+        $__sprint7_file_esc = htmlspecialchars(str_replace('/var/www/html/', cwe_base_slash(), $__sprint7_list_file ?? ''));
         $__sprint7_count = count($filtered_items ?? $combined_items);
         $__sprint7_is_manual = ($__sprint7_list_kind === 'manual' || $__sprint7_list_kind === 'system');
         echo "<div class='sprint7-list-toolbar' style='display:flex;gap:8px;align-items:center;margin:0 0 10px;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'>";
@@ -763,7 +764,7 @@ if ($search_ip) {
   // R39 (T3.4): VirusTotal lookup — fetch + popup (simple)
   window.vtLookup = async function(value){
     try {
-      var r = await fetch('/blacklist/cyberwebeyeos/enrichment.php?action=vt&value=' + encodeURIComponent(value),
+      var r = await fetch('enrichment.php?action=vt&value=' + encodeURIComponent(value),
         {credentials:'same-origin'});
       var d = await r.json();
       if (!d.ok && d.error) { alert('VT: ' + d.error); return; }
@@ -799,7 +800,7 @@ if ($search_ip) {
     content.innerHTML = '<p style="color:#64748b;">Yükleniyor…</p>';
     bg.style.display = 'block'; drawer.style.display = 'block';
     try {
-      const r = await fetch('/blacklist/cyberwebeyeos/ioc_history.php?value=' + encodeURIComponent(value), {credentials:'same-origin'});
+      const r = await fetch('ioc_history.php?value=' + encodeURIComponent(value), {credentials:'same-origin'});
       const d = await r.json();
       if (!d.ok) { content.innerHTML = '<p style="color:#dc2626;">Hata: ' + (d.error||'?') + '</p>'; return; }
 
@@ -935,7 +936,7 @@ if ($search_ip) {
   function enrichOne(cell){
     const v = cell.getAttribute('data-value');
     if (!v) return Promise.resolve();
-    return fetch('/blacklist/cyberwebeyeos/enrichment.php?value=' + encodeURIComponent(v), {credentials:'same-origin'})
+    return fetch('enrichment.php?value=' + encodeURIComponent(v), {credentials:'same-origin'})
       .then(r => r.json())
       .then(d => {
         if (!d || !d.ok) { cell.textContent = ''; return; }
@@ -4271,14 +4272,14 @@ async function vwSave(ev){
         fd.append('cve_id', cid);
         if (note) fd.append('note', note);
         if (undo) fd.append('undo', '1');
-        fetch('/blacklist/cyberwebeyeos/cve_dismiss.php', {method:'POST', credentials:'same-origin', body:fd})
+        fetch('cve_dismiss.php', {method:'POST', credentials:'same-origin', body:fd})
           .then(r=>r.json()).then(j=>{ if (j.ok) location.reload(); else alert('Hata: '+(j.error||'?')); });
       };
       window.cveSync = async function(){
         const out = document.getElementById('cve-sync-result');
         out.style.display='block'; out.textContent='⏳ NVD + KEV pull (~30 sn — anahtarsız)...';
         try {
-          const r = await fetch('/blacklist/cyberwebeyeos/cve_fetch.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:''});
+          const r = await fetch('cve_fetch.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:''});
           const j = await r.json();
           out.textContent = JSON.stringify(j, null, 2);
           if (j.ok) setTimeout(()=>location.reload(), 1500);
@@ -4359,7 +4360,7 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
       let loaded = false;
       window.cwe_load_dashboard = function(){
         if (loaded) return; loaded = true;
-        fetch('/blacklist/cyberwebeyeos/dashboard_stats.php', {credentials:'same-origin'})
+        fetch('dashboard_stats.php', {credentials:'same-origin'})
           .then(r => r.json()).then(d => {
             if (!d.ok) return;
             document.getElementById('dash-generated-at').textContent = d.generated_at;
@@ -4470,7 +4471,7 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
         out.style.display = 'block';
         out.textContent = '⏳ 4 sağlayıcıdan veri çekiliyor (ortalama 5-10 sn)...';
         try {
-          var r = await fetch('/blacklist/cyberwebeyeos/bigtech_whitelist_sync.php', {
+          var r = await fetch('bigtech_whitelist_sync.php', {
             method:'POST', credentials:'same-origin',
             headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: ''
           });
@@ -4537,7 +4538,7 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
       out.style.display = 'block';
       out.textContent = '⏳ Tranco top-10000 fetch ediliyor (~3 sn)...';
       try {
-        var r = await fetch('/blacklist/cyberwebeyeos/warninglist_sync.php', {
+        var r = await fetch('warninglist_sync.php', {
           method:'POST', credentials:'same-origin',
           headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: 'top=10000'
         });
@@ -4584,7 +4585,7 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
         }
         try {
           var body = 'threshold=' + th + (dry ? '&dry=1' : '');
-          var r = await fetch('/blacklist/cyberwebeyeos/cidr_aggregate.php', {
+          var r = await fetch('cidr_aggregate.php', {
             method:'POST', credentials:'same-origin',
             headers:{'Content-Type':'application/x-www-form-urlencoded'},
             body: body
@@ -4660,7 +4661,7 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
           <summary style="cursor:pointer;">📡 SIEM entegrasyon notu</summary>
           <div style="padding:10px;background:var(--slate-50);border-radius:6px;margin-top:6px;">
             <p>SIEM **sadece IoC match event'lerini** buraya POST etmeli — ham firewall event'leri gönderme (DB şişer).</p>
-            <p style="margin-top:8px;"><b>Endpoint:</b> <code>POST /blacklist/cyberwebeyeos/sighting.php</code></p>
+            <p style="margin-top:8px;"><b>Endpoint:</b> <code>POST <?= htmlspecialchars(cwe_url('sighting.php')) ?></code></p>
             <p><b>Auth:</b> <code>X-API-Key: &lt;key&gt;</code></p>
             <p><b>Single:</b></p>
             <pre style="background:#fff;padding:8px;border-radius:4px;font-size:10.5px;overflow:auto;">{"value":"1.2.3.4","source":"wazuh","observed_at":"2026-05-21 13:00:00","count":1}</pre>
@@ -4669,7 +4670,7 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
             <p><b>Wazuh integrator örneği</b> (<code>/var/ossec/etc/ossec.conf</code>):</p>
             <pre style="background:#fff;padding:8px;border-radius:4px;font-size:10.5px;overflow:auto;">&lt;integration&gt;
   &lt;name&gt;custom-cwe-sighting&lt;/name&gt;
-  &lt;hook_url&gt;https://blockharbor.example.com/blacklist/cyberwebeyeos/sighting.php&lt;/hook_url&gt;
+  &lt;hook_url&gt;https://blockharbor.example.com<?= htmlspecialchars(cwe_url('sighting.php')) ?>&lt;/hook_url&gt;
   &lt;api_key&gt;cwe_xxx&lt;/api_key&gt;
   &lt;rule_id&gt;100100&lt;/rule_id&gt;  &lt;!-- sadece "IoC match" rule'u --&gt;
   &lt;alert_format&gt;json&lt;/alert_format&gt;

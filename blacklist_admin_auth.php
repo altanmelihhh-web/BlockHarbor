@@ -11,6 +11,7 @@
  *   viewer   — sadece okuma (search, export, GET endpoints)
  */
 
+require_once __DIR__ . '/app_paths.php';
 $__cwe_cfg = require __DIR__ . '/auth_config.php';
 
 // Session konfigürasyonu — portal session ile çakışmasın diye kendi isim
@@ -19,7 +20,7 @@ session_name($__cwe_cfg['session_name']);
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => $__cwe_cfg['session_lifetime'],
-        'path'     => '/blacklist/cyberwebeyeos/',
+        'path'     => cwe_base_slash(),
         'domain'   => '',
         'secure'   => !empty($_SERVER['HTTPS']),
         'httponly' => true,
@@ -35,7 +36,7 @@ $__authed = isset($_SESSION['cwe_auth']) && $_SESSION['cwe_auth'] === true
 
 if (!$__authed) {
     // Login değil → login sayfasına yönlendir
-    $login_url = '/blacklist/cyberwebeyeos/login.php?next=' . urlencode($_SERVER['REQUEST_URI'] ?? '/blacklist/cyberwebeyeos/');
+    $login_url = cwe_url('login.php') . '?next=' . urlencode($_SERVER['REQUEST_URI'] ?? cwe_base_slash());
     header('Location: ' . $login_url);
     exit;
 }
@@ -97,7 +98,7 @@ a{color:#16a085;text-decoration:none}a:hover{text-decoration:underline}</style><
 <body><h1>🚫 403 — Yetkisiz Erişim</h1>
 <div class="box"><p>Bu işlem için yeterli yetkiniz yok.</p>
 <p>Mevcut rol: <span class="role">{$cur}</span> · Gerekli rol(ler): <span class="role">{$req}</span></p></div>
-<p><a href="/blacklist/cyberwebeyeos/cyberwebeyeosblacklistadmin.php">← Admin paneline dön</a></p>
+<p><a href="<?= htmlspecialchars(cwe_url('cyberwebeyeosblacklistadmin.php')) ?>">← Admin paneline dön</a></p>
 </body></html>
 HTML;
     exit;

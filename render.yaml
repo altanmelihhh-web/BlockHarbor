@@ -1,0 +1,54 @@
+# Render blueprint — public read-only demo of BlockHarbor.
+#
+# Deploy:  Render dashboard -> New -> Blueprint -> point at this repository.
+#
+# The free plan has no persistent disk and spins the instance down after ~15
+# minutes of inactivity. That suits this demo: bin/seed-demo.php regenerates the
+# synthetic dataset on every boot, so each visitor gets the same clean state and
+# nothing a visitor could write would survive anyway.
+#
+# DEMO_MODE=true is what makes this safe to expose. It enables the front-door
+# write lock in demo_mode.php, forces the demo/demo read-only account, disables
+# the admin/admin fallback, stubs out every outbound API call, and removes the
+# feed-fetching cron. Do not set it to false on a public URL.
+
+services:
+  - type: web
+    name: blockharbor-demo
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /blacklist/cyberwebeyeos/login.php
+    autoDeployTrigger: commit
+    envVars:
+      # --- demo safety switches -------------------------------------------
+      - key: DEMO_MODE
+        value: "true"
+
+      # No admin credentials are provisioned. login.php refuses every path
+      # other than demo/demo while DEMO_MODE is true, and auth_config.php
+      # generates an unusable random hash instead of the admin/admin fallback.
+      - key: CWE_ADMIN_USERNAME
+        value: "disabled-in-demo"
+      - key: CWE_ADMIN_PASSWORD_HASH
+        value: ""
+
+      # --- third-party APIs: intentionally empty ---------------------------
+      # demo_mode.php short-circuits these lookups before any request is made,
+      # so no key is needed and none should ever be set on a public demo.
+      - key: CWE_VT_API_KEY
+        value: ""
+      - key: CWE_GREYNOISE_API_KEY
+        value: ""
+      - key: CWE_IPGEOLOCATION_API_KEY
+        value: ""
+
+      # --- REST API --------------------------------------------------------
+      # Read-only actions only; api.php writes are blocked by the demo gate.
+      - key: CWE_API_KEYS
+        value: '[{"key":"demo-read-only-key","role":"viewer","owner":"public demo"}]'
+
+      - key: CWE_CONTACT_EMAIL
+        value: "demo@example.com"

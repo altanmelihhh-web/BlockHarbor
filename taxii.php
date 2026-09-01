@@ -14,13 +14,14 @@
  * Routing: .htaccess RewriteRule /taxii2/* → taxii.php?path=*
  */
 
+require_once __DIR__ . '/app_paths.php';
 require_once __DIR__ . '/ioc_helpers.php';
 
 header('Content-Type: application/taxii+json;version=2.1; charset=utf-8');
 header('Cache-Control: max-age=60');
 
 $path = trim($_GET['path'] ?? '', '/');
-$base = '/blacklist/cyberwebeyeos/taxii2/';
+$base = cwe_url('taxii2/');
 $BASE_URL = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $base;
 
 // --- Auth (X-API-Key, api.php uyumu) ---

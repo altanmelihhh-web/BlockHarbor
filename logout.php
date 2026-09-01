@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/app_paths.php';
 $cfg = require __DIR__ . '/auth_config.php';
 session_name($cfg['session_name']);
 session_start();
@@ -8,5 +9,5 @@ if (ini_get('session.use_cookies')) {
     setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 }
 session_destroy();
-header('Location: /blacklist/cyberwebeyeos/login.php');
+header('Location: ' . cwe_url('login.php'));
 exit;

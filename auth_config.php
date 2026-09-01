@@ -30,7 +30,16 @@ if (empty($_api_keys)) {
     ];
 }
 
-$_password_hash = getenv('CWE_ADMIN_PASSWORD_HASH') ?: password_hash('admin', PASSWORD_BCRYPT);
+// In demo mode never synthesise the admin/admin fallback hash. login.php also
+// refuses this path outright; this is the second layer.
+$_demo = strtolower(trim((string)getenv('DEMO_MODE'))) === 'true';
+$_env_hash = getenv('CWE_ADMIN_PASSWORD_HASH');
+if ($_demo) {
+    // Random, unusable hash — no password can ever verify against it.
+    $_password_hash = password_hash(bin2hex(random_bytes(32)), PASSWORD_BCRYPT);
+} else {
+    $_password_hash = $_env_hash ?: password_hash('admin', PASSWORD_BCRYPT);
+}
 
 return [
     'username'         => getenv('CWE_ADMIN_USERNAME') ?: 'admin',

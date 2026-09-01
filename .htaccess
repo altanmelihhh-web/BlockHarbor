@@ -21,7 +21,7 @@
 </IfModule>
 
 # .git/ erişimini engelle
-RedirectMatch 403 ^/blacklist/cyberwebeyeos/\.git(/|$)
+RedirectMatch 403 (^|/)\.git(/|$)
 
 # Feed dosyaları için doğru content-type + no-cache
 <FilesMatch "\.txt$">

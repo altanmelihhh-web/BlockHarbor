@@ -1,0 +1,56 @@
+# Never bake local secrets or state into the image. Without this file the
+# Dockerfile's `COPY . .` would embed a developer's .env (real API keys and the
+# admin bcrypt hash) and the entire .git history into a published image.
+
+.env
+.env.*
+!.env.example
+NOTES.md
+
+# VCS
+.git
+.gitignore
+.github
+
+# Dependencies are installed inside the image by composer
+vendor/
+node_modules/
+composer.phar
+
+# Runtime state — seeded at boot from the *.example templates
+users.json
+notifications.json
+customer_assets.json
+whitelist.txt
+blacklist.txt
+blacklist_meta.json
+cve_state.json
+cve_action_dismiss.json
+feed_health_state.json
+greynoise_quota.json
+pending_ips.json
+cyberwebeyeosblacklist.txt
+
+# Caches and downloaded feeds
+enrichment_cache/
+cve_cache/
+domain_dyn/
+lists_dyn/
+usom/
+*.log
+backups/
+uploads/
+
+# Keys, dumps, editor noise
+*.pem
+*.key
+*.crt
+*.sql
+*.sqlite
+*.db
+*.bak
+*.swp
+.DS_Store
+.idea/
+.vscode/
+.claude/

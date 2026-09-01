@@ -86,6 +86,11 @@ function greynoise_cve_search(string $cve, bool $dry_run = false): array {
     $cached = greynoise_cache_get($cve);
     if ($cached !== null) return $cached + ['source' => 'cache'];
 
+    // DEMO MODE: never reach out to api.greynoise.io (and never spend quota).
+    if (function_exists('demo_is_on') && demo_is_on()) {
+        return demo_fake_greynoise($cve);
+    }
+
     if ($dry_run) {
         return ['ips' => [], 'source' => 'dry-run', 'count' => 0, 'cve' => $cve];
     }

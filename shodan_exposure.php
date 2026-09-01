@@ -45,6 +45,11 @@ function shodan_exposure_check_ip(string $ip, bool $dry_run = false): array {
     $cached = shodan_cache_get($ip);
     if ($cached !== null) return $cached + ['source' => 'cache'];
 
+    // DEMO MODE: never reach out to internetdb.shodan.io.
+    if (function_exists('demo_is_on') && demo_is_on()) {
+        return demo_fake_shodan($ip);
+    }
+
     if ($dry_run) {
         return ['ok' => true, 'ip' => $ip, 'vulns' => [], 'ports' => [], 'cpes' => [], 'hostnames' => [], 'tags' => [], 'source' => 'dry-run'];
     }
