@@ -12,20 +12,9 @@ mkdir -p \
     /var/www/html/warninglists \
     /var/log/cyberwebeyeos
 
-# Seed runtime state from shipped templates on first boot.
-# These files are gitignored (they hold credentials / operational data),
-# so the image ships only the *.example templates.
-for f in users.json notifications.json customer_assets.json whitelist.txt; do
-    if [ ! -f "/var/www/html/$f" ] && [ -f "/var/www/html/$f.example" ]; then
-        cp "/var/www/html/$f.example" "/var/www/html/$f"
-    fi
-done
-
-# Touch writable runtime files so www-data can write them on first request
-for f in blacklist.txt whitelist.txt domain_combined.txt cyberwebeyeosblacklist.txt \
-          audit.log ip_blocklist.log conflict_log.txt; do
-    [ -f "/var/www/html/$f" ] || touch "/var/www/html/$f"
-done
+# Seed state files and create the writable files/directories the app expects.
+# Shared with native installs so both bootstrap identically.
+sh /var/www/html/bin/init-state.sh /var/www/html
 
 # --------------------------------------------------------------- demo mode --
 # Enabled by DEMO_MODE=true. Everything below is a no-op otherwise, so a normal

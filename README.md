@@ -204,14 +204,16 @@ Copy `.env.example` to `.env` and set:
 ### Runtime state files
 
 These hold credentials and operational data, so they are **gitignored** and only
-their templates ship with the repo. The Docker entrypoint seeds them
-automatically; for a native install copy them by hand:
+their templates ship with the repo. One command creates them, along with the
+writable files and directories the application appends to but will not create
+itself:
 
 ```bash
-for f in users.json notifications.json customer_assets.json whitelist.txt; do
-  [ -f "$f" ] || cp "$f.example" "$f"
-done
+sh bin/init-state.sh
 ```
+
+The Docker entrypoint runs the same script, so container and native installs
+bootstrap identically. It is idempotent — existing files are left alone.
 
 Never commit these files back — they are excluded in `.gitignore` on purpose.
 
