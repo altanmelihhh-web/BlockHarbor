@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /var/www/blacklist/cyberwebeyeos
+cd "${BH_APP_DIR:-/var/www/blacklist/cyberwebeyeos}"
 
-BASE="https://blockharbor.example.com/blacklist/cyberwebeyeos"
+BASE="${BH_BASE_URL:-https://blockharbor.example.com/blacklist/cyberwebeyeos}"
 COOKIES=$(mktemp); trap 'rm -f $COOKIES' EXIT
 
 # Login as admin

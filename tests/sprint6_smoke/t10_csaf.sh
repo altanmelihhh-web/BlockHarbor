@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /var/www/blacklist/cyberwebeyeos
+cd "${BH_APP_DIR:-/var/www/blacklist/cyberwebeyeos}"
 
 # 1. Config file exists with 5 publishers
 test -f vendor_psirt.json || { echo "FAIL: vendor_psirt.json missing"; exit 1; }

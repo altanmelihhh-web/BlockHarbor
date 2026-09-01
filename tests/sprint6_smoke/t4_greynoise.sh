@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /var/www/blacklist/cyberwebeyeos
+cd "${BH_APP_DIR:-/var/www/blacklist/cyberwebeyeos}"
 
 # 1. Function exists and returns array
 out=$(php -r '

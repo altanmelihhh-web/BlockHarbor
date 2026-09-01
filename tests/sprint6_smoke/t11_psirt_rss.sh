@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /var/www/blacklist/cyberwebeyeos
+cd "${BH_APP_DIR:-/var/www/blacklist/cyberwebeyeos}"
 
 # 1. CVE extraction from sample RSS
 out=$(php -r '

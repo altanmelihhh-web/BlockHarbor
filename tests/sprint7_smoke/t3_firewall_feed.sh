@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /var/www/blacklist/cyberwebeyeos
+cd "${BH_APP_DIR:-/var/www/blacklist/cyberwebeyeos}"
 
 # Backup
 cp cyberwebeyeosblacklist.txt /tmp/sprint7_t3_feed.bak

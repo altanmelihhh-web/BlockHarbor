@@ -7,7 +7,7 @@
 
 # R87b: Blanket-deny — sensitive extensions (JSON state files, logs, configs)
 # .txt feed dosyaları public consume (firewall consumer); JSON dosyaları sadece server-side.
-<FilesMatch "\.(json|log|md|bak|backup|save|swp|sample|sql|env)$">
+<FilesMatch "\.(json|log|md|bak|backup|save|swp|sample|sql|env|example)$">
     Require all denied
 </FilesMatch>
 

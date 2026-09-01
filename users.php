@@ -119,12 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $newhash = password_hash($newpw, PASSWORD_BCRYPT);
                     $u['password_hash'] = $newhash;
                     save_users($data);
-                    // Default user → auth_config.php'yi de güncelle
-                    if (($u['username'] ?? '') === ($cfg['username'] ?? 'cyberwebeyeos')) {
-                        $cfg_content = @file_get_contents(__DIR__ . '/auth_config.php');
-                        $cfg_content = preg_replace("/'password_hash'\s*=>\s*'[^']*'/", "'password_hash' => '" . str_replace("'", "\\'", $newhash) . "'", $cfg_content);
-                        @file_put_contents(__DIR__ . '/auth_config.php', $cfg_content);
-                    }
+                    // NOT: auth_config.php artık env-driven (CWE_ADMIN_PASSWORD_HASH) ve
+                    // kaynak kodda takipli. Buradan yeniden yazılmaz — aksi halde bir
+                    // bcrypt hash'i repoya sızabilirdi. Default admin parolasını
+                    // değiştirmek için CWE_ADMIN_PASSWORD_HASH ortam değişkenini güncelle.
                     audit_log_event('user_password_change', ['username'=>$u['username']]);
                     $msg = '✅ Parola değiştirildi: ' . htmlspecialchars($u['username']);
                     break;

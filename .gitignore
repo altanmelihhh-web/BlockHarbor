@@ -56,6 +56,31 @@ pending_ips.json
 
 # Docker env (keep .env.example)
 .env
+.env.*
+!.env.example
+
+# Runtime state — ASLA commit etme (şablonlar *.example olarak tutulur)
+users.json
+notifications.json
+customer_assets.json
+whitelist.txt
+
+# Veritabanı / dump dosyaları
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.pgdump
+
+# Anahtar / sertifika
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
 
 # Internal operational notes (not for public repo)
 NOTES.md

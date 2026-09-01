@@ -1,0 +1,5 @@
+# BlockHarbor whitelist — örnek şablon
+# Kurulumda `cp whitelist.txt.example whitelist.txt` ile başlat.
+# Format: <ip|cidr>[|<tarih>|<ekleyen>|<not>|<tlp>]
+192.0.2.99|2026-01-01 00:00:00|admin|Ofis çıkış IP (örnek)
+198.51.100.0/24|2026-01-01 00:00:00|admin|Şube ağı (örnek)|AMBER

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Smoke test for Task 1 (B4): feed_health extend
 set -euo pipefail
-cd /var/www/blacklist/cyberwebeyeos
+cd "${BH_APP_DIR:-/var/www/blacklist/cyberwebeyeos}"
 
 # 1. State file must exist after running a sample heartbeat
 php -r '

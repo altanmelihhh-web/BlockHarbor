@@ -9,5 +9,6 @@
             "last_login": null,
             "active": true
         }
-    ]
+    ],
+    "_note": "Örnek şablon. Kurulumda `cp users.json.example users.json` ile başlat. Gerçek users.json git tarafından yok sayılır (parola hash'i içerir)."
 }

@@ -22,6 +22,8 @@ bash bin/docker-up.sh
 
 The script:
 - Creates `.env` from `.env.example` automatically
+- Seeds runtime state (`users.json`, `whitelist.txt`, ...) from the shipped
+  `*.example` templates on first boot
 - Detects port conflicts and prompts for a different port if needed
 - Builds the image and starts the container
 
@@ -46,6 +48,20 @@ Copy `.env.example` to `.env` and set:
 | `CWE_GREYNOISE_API_KEY` | GreyNoise community key (optional, 50/day) |
 | `CWE_IPGEOLOCATION_API_KEY` | ipgeolocation.io key (optional) |
 | `CWE_API_KEYS` | JSON array of REST API keys (optional) |
+
+### Runtime state files
+
+These hold credentials and operational data, so they are **gitignored** and only
+their templates ship with the repo. The Docker entrypoint seeds them
+automatically; for a native install copy them by hand:
+
+```bash
+for f in users.json notifications.json customer_assets.json whitelist.txt; do
+  [ -f "$f" ] || cp "$f.example" "$f"
+done
+```
+
+Never commit these files back — they are excluded in `.gitignore` on purpose.
 
 Generate a password hash:
 ```bash
