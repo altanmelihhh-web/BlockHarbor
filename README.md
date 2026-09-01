@@ -1,6 +1,116 @@
-# BlockHarbor — Threat Intelligence Panel
+# BlockHarbor — Threat Intelligence Platform
 
-A self-hosted threat intelligence panel for managing IP/domain blacklists, CVE watchlists, and IoC pivoting.
+BlockHarbor is a self-hosted threat intelligence platform that sits between public
+threat feeds and the network devices that have to act on them. It ingests IoCs from
+external sources, reduces false positives against warninglists, enriches indicators
+with third-party reputation data, and republishes the result as a firewall-consumable
+blocklist, a TAXII 2.1 collection, and a REST API.
+
+It exists because the useful part of a blocklist is rarely the raw feed. A feed has to
+be deduplicated, subtracted against a whitelist, aggregated into CIDR blocks a firewall
+can actually hold, tracked back to the source that reported it, and audited when someone
+removes an entry. BlockHarbor does that work and keeps a verifiable record of it.
+
+## Features
+
+**Distribution**
+- **TAXII 2.1 server** — discovery, api-root, collection and object endpoints, serving
+  IoCs as STIX 2.1 `indicator` objects (`taxii.php`)
+- **REST API** — `stats`, `iocs`, `search`, `export`, `add`, `audit` actions behind an
+  `X-API-Key` header with per-key roles (`api.php`)
+- **Firewall feed** — a flat blocklist rebuilt from every enabled source with whitelist
+  subtraction and atomic writes, ready for a firewall to pull (`lib_firewall_feed.php`)
+
+**Ingest**
+- **8 external feeds** — Spamhaus DROP/EDROP, Firehol Level 1, CI Badguys, URLhaus,
+  StevenBlack, MalwareBazaar, USOM (TR-CERT) — with per-source health tracking
+- **CSAF 2.0 fetcher** and **vendor PSIRT RSS** for Cisco, Red Hat, Palo Alto and
+  others, filtered by a configurable vendor watchlist and CVSS floor
+- **ThreatFox** IoC ingestion and **sightings API** for pushing observations from a SIEM
+
+**Analysis**
+- **Enrichment** — VirusTotal v3, GreyNoise Community, Shodan InternetDB and
+  ipgeolocation.io, each cached on disk with a TTL to stay inside free-tier quotas
+- **IoC pivot** — cross-references an indicator against CVEs, customer assets and
+  Shodan exposure data
+- **Provenance** — every indicator keeps which source reported it, when it was first
+  and last seen, and how many sources agree
+- **CIDR aggregation** — collapses scattered single IPs into `/24` blocks once a
+  configurable threshold is crossed, with a dry-run mode and automatic backup
+- **Warninglists** — RFC 1918, IANA reserved, public DNS resolvers and the Tranco
+  top-10k are checked before an indicator is accepted, to suppress obvious false positives
+
+**Operations**
+- **Verifiable audit log** — every entry is `sha256(prev_hash + "|" + json)`, forming a
+  hash chain from a fixed genesis. `bin/verify-audit-chain` detects any tampering or
+  deletion in the middle of the log
+- **RBAC** — `admin` / `operator` / `viewer` roles enforced server-side on every mutating
+  endpoint, not only in the UI
+- **Notifications** — email and webhook hooks on blacklist, whitelist, user and feed events
+- **False-positive reporting** and per-source feed health dashboards
+
+## Architecture
+
+```
+                        EXTERNAL SOURCES
+   Spamhaus · Firehol · URLhaus · USOM · MalwareBazaar · StevenBlack
+   ThreatFox · NVD/KEV · Vendor PSIRT (RSS) · CSAF 2.0 advisories
+                               │
+                               ▼
+   ┌───────────────────────────────────────────────────────────────┐
+   │  INGEST            sources_manager · csaf_fetcher             │
+   │                    psirt_rss_fetcher · cve_fetch · threatfox  │
+   │                    api.php (ingest) · sighting.php (SIEM)     │
+   └───────────────────────────────┬───────────────────────────────┘
+                                   ▼
+   ┌───────────────────────────────────────────────────────────────┐
+   │  NORMALISE & FILTER                                           │
+   │    warninglists  →  RFC1918 · IANA reserved · public DNS      │
+   │                     Tranco top-10k                            │
+   │    whitelist subtraction · dedup · TTL expiry                 │
+   └───────────────────────────────┬───────────────────────────────┘
+                                   ▼
+   ┌───────────────────────────────────────────────────────────────┐
+   │  STORE           blacklist.txt · lists_dyn/ · lists.json      │
+   │                  blacklist_meta.json  ← provenance per IoC    │
+   └───────────────────────────────┬───────────────────────────────┘
+                                   ▼
+   ┌───────────────────────────────────────────────────────────────┐
+   │  ENRICH & ANALYSE                                             │
+   │    VirusTotal · GreyNoise · Shodan · ipgeolocation (cached)   │
+   │    ioc_pivot · ioc_provenance · ioc_history                   │
+   │    cidr_aggregate · fp_report · feed_health                   │
+   └───────────────────────────────┬───────────────────────────────┘
+                                   ▼
+   ┌───────────────────────────────────────────────────────────────┐
+   │  DISTRIBUTE                                                   │
+   │    taxii.php        →  TAXII 2.1 / STIX 2.1  →  TIP, MISP     │
+   │    api.php          →  REST + X-API-Key      →  SOAR, scripts │
+   │    firewall feed    →  flat blocklist        →  FortiGate,    │
+   │                                                 pfSense, F5   │
+   └───────────────────────────────────────────────────────────────┘
+
+   CROSS-CUTTING
+     blacklist_admin_auth.php  →  RBAC (admin / operator / viewer)
+     audit_log.php             →  sha256 hash-chained audit trail
+     lib_safe_write.php        →  atomic writes (tmp + rename)
+     notify.php                →  email / webhook events
+```
+
+**Stack:** PHP 8.5, PostgreSQL (auth/audit in the `archive/blockharbor-modern` branch),
+Apache, Docker. No framework — deliberately, so the deployment surface stays small
+enough to audit.
+
+## Screenshots
+
+<!-- Add screenshots to docs/screenshots/ and link them here. -->
+
+| View | Screenshot |
+|---|---|
+| Dashboard — KPI chips, feed health, action-required queue | _TODO_ |
+| IoC pivot — enrichment and provenance for a single indicator | _TODO_ |
+| List management — per-list view, bulk actions, TLP tagging | _TODO_ |
+| Audit log — hash-chained entries with chain verification | _TODO_ |
 
 ## Quick Start
 
@@ -104,3 +214,7 @@ Discovery endpoint: `GET /blacklist/cyberwebeyeos/taxii2/`
 - Run behind a reverse proxy (nginx/caddy) that terminates TLS
 - Rotate `CWE_API_KEYS` before exposing to external clients
 - Set `CWE_ADMIN_PASSWORD_HASH` to a strong bcrypt hash in `.env`
+
+## License
+
+MIT — see [LICENSE](LICENSE).
