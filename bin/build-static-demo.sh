@@ -249,12 +249,16 @@ foreach (glob("$dir/*.html") as $f) {
     if (strpos($h, "bh-static-banner") === false) {
         $h = preg_replace("/(<body\b[^>]*>)/i", "$1" . $banner, $h, 1);
     }
-    // load the shim before anything else runs
-    $h = preg_replace("/(<\/head>)/i",
-        "<script src=\"demo-data.js\"></script><script src=\"static-demo.js\"></script>$1", $h, 1);
+    // Load the shim before anything else runs. The ?v= stamp is the content hash
+    // of the two files: without it a returning visitor keeps the browser-cached
+    // copy from an earlier build, and a shim that no longer matches the captured
+    // data fails every lookup.
+    $stamp = substr(hash("sha256",
+        (string)@file_get_contents("$dir/demo-data.js") . (string)@file_get_contents("$dir/static-demo.js")), 0, 10);
+    $tags = "<script src=\"demo-data.js?v=$stamp\"></script><script src=\"static-demo.js?v=$stamp\"></script>";
+    $h = preg_replace("/(<\/head>)/i", $tags . "$1", $h, 1);
     if (strpos($h, "static-demo.js") === false) {
-        $h = preg_replace("/(<body\b[^>]*>)/i",
-            "$1<script src=\"demo-data.js\"></script><script src=\"static-demo.js\"></script>", $h, 1);
+        $h = preg_replace("/(<body\b[^>]*>)/i", "$1" . $tags, $h, 1);
     }
     file_put_contents($f, $h);
 }
