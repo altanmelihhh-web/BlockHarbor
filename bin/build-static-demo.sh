@@ -24,7 +24,8 @@ echo "==> Seeding the demo dataset"
 DEMO_MODE=true php "$ROOT/bin/seed-demo.php" >/dev/null
 
 echo "==> Starting the application in demo mode on port $PORT"
-ROUTER="$(mktemp -t bhrouter).php"
+# Portable across BSD and GNU mktemp: -t without X's is a BSD-only spelling.
+ROUTER="$(mktemp "${TMPDIR:-/tmp}/bhrouter.XXXXXX").php"
 cat > "$ROUTER" <<'PHP'
 <?php
 $root = getenv('BH_ROOT');
