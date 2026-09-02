@@ -260,6 +260,13 @@ foreach (glob("$dir/*.html") as $f) {
     if (strpos($h, "static-demo.js") === false) {
         $h = preg_replace("/(<body\b[^>]*>)/i", "$1" . $tags, $h, 1);
     }
+    // The capture ran against a local server, so any URL the page built from
+    // HTTP_HOST carries that host and port. Replace it with a neutral example
+    // so the snapshot does not advertise 127.0.0.1:<build port>.
+    $h = str_replace(["https://127.0.0.1:" . getenv("STATIC_DEMO_PORT_USED"),
+                      "http://127.0.0.1:" . getenv("STATIC_DEMO_PORT_USED")],
+                     "https://blockharbor.example.com", $h);
+    $h = preg_replace("#https?://127\\.0\\.0\\.1(:\\d+)?#", "https://blockharbor.example.com", $h);
     file_put_contents($f, $h);
 }
 ' "$OUT"

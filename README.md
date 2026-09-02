@@ -103,14 +103,29 @@ enough to audit.
 
 ## Screenshots
 
-<!-- Add screenshots to docs/screenshots/ and link them here. -->
+Taken from the [live demo](https://altanmelihhh-web.github.io/BlockHarbor/); the
+data is synthetic.
 
-| View | Screenshot |
-|---|---|
-| Dashboard — KPI chips, feed health, action-required queue | _TODO_ |
-| IoC pivot — enrichment and provenance for a single indicator | _TODO_ |
-| List management — per-list view, bulk actions, TLP tagging | _TODO_ |
-| Audit log — hash-chained entries with chain verification | _TODO_ |
+**Blocklist** — per-list sidebar with live counts, indicators enriched with
+country, ASN and confidence, TLP tagging and inline expansion for provenance.
+
+![Blocklist view](docs/screenshots/01-blacklist.jpg)
+
+**Dashboard** — 30-day ingestion trend, indicator-type and TLP distribution, and
+per-source contribution.
+
+![Dashboard](docs/screenshots/02-dashboard.jpg)
+
+**Feed health** — per-source fetch status, extracted counts, age and the pull
+command a firewall would use against the published feed.
+
+![Feed health](docs/screenshots/03-feed-health.jpg)
+
+**Audit chain verification** — recomputes the `sha256(prev_hash + "|" + json)`
+chain over the whole log and reports the first break if there is one. Also
+available as JSON for monitoring, and as a CLI exit code.
+
+![Audit chain verification](docs/screenshots/04-audit-chain.jpg)
 
 ## Live demo
 
