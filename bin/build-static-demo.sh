@@ -146,10 +146,21 @@ cat > "$OUT/static-demo.js" <<'JSEOF'
   var data = window.__BH_STATIC__ || {};
   var realFetch = window.fetch ? window.fetch.bind(window) : null;
 
+  // Map a request to the key it was captured under. Captured keys are relative
+  // to the directory the snapshot is served from ("dashboard_stats.php",
+  // "enrichment.php?value=192.0.2.4"), and that directory is not the domain
+  // root on GitHub Pages — it is /<repo>/. Resolving against the page URL and
+  // then stripping the page's own directory is what makes the two line up.
   function normalise(url) {
-    try { url = new URL(url, window.location.href).href.replace(window.location.origin + '/', ''); }
-    catch (e) { /* relative already */ }
-    return String(url).replace(/^\.?\//, '').replace(/^static-demo\//, '');
+    var abs;
+    try { abs = new URL(url, window.location.href); }
+    catch (e) { return String(url).replace(/^\.?\//, ''); }
+    if (abs.origin !== window.location.origin) return abs.href;
+    var baseDir = window.location.pathname.replace(/[^/]*$/, '');
+    var path = abs.pathname;
+    if (path.indexOf(baseDir) === 0) path = path.slice(baseDir.length);
+    else path = path.replace(/^\//, '');
+    return path + abs.search;
   }
 
   function respond(payload, status) {
