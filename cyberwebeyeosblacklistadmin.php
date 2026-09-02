@@ -672,7 +672,7 @@ if ($search_ip) {
                 $__liste_html = '<strong>Liste:</strong> ' . htmlspecialchars($item['source']);
                 $__prov_html = '';
                 if ($item['editable']) {
-                    $__prov_html = '<button class="ioc-prov-btn" data-ip="' . htmlspecialchars($ip, ENT_QUOTES) . '" onclick="event.stopPropagation();" style="background:none;border:1px solid var(--slate-200);color:#0e7490;cursor:pointer;font-size:12px;padding:2px 8px;border-radius:4px;" title="Provenance">ⓘ Provenance</button>';
+                    $__prov_html = '<button type="button" class="ioc-prov-btn" data-ip="' . htmlspecialchars($ip, ENT_QUOTES) . '" onclick="event.stopPropagation();" style="background:none;border:1px solid var(--slate-200);color:#0e7490;cursor:pointer;font-size:12px;padding:2px 8px;border-radius:4px;" title="Provenance">ⓘ Provenance</button>';
                 }
                 $__parts = array_filter([$__fqdn_html, $__jira_html, $__sure_html, $__liste_html, $__prov_html], fn($s) => $s !== '');
                 echo "<tr class='bl-row-detail hidden' data-for=\"{$__row_id}\">"
