@@ -4373,6 +4373,30 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
     <script>
     (function(){
       let loaded = false;
+
+      // Chart.js is loaded from a CDN with `defer`, so it may not have executed
+      // by the time the stats response lands — reliably so when the response is
+      // fast. Wait for it instead of reloading the page: the old code called
+      // location.reload() every 800ms, which is an endless loop whenever the
+      // CDN is slow, blocked, or unavailable.
+      function whenChartReady(cb) {
+        const deadline = Date.now() + 10000;
+        (function poll() {
+          if (window.Chart) return cb(true);
+          if (Date.now() > deadline) return cb(false);
+          setTimeout(poll, 100);
+        })();
+      }
+
+      function chartsUnavailable() {
+        document.querySelectorAll('#tab-dashboard canvas').forEach(function (c) {
+          const note = document.createElement('p');
+          note.textContent = 'Grafik kütüphanesi yüklenemedi (CDN erişilemiyor). Sayısal veriler yukarıda.';
+          note.style.cssText = 'color:#64748b;font-size:13px;padding:1rem;margin:0;text-align:center';
+          c.replaceWith(note);
+        });
+      }
+
       window.cwe_load_dashboard = function(){
         if (loaded) return; loaded = true;
         fetch('dashboard_stats.php', {credentials:'same-origin'})
@@ -4386,8 +4410,18 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
             document.getElementById('t-ex').textContent = t.expired?.toLocaleString() ?? '-';
             document.getElementById('t-fp').textContent = t.fp_reports?.toLocaleString() ?? '-';
 
-            if (!window.Chart) { setTimeout(() => location.reload(), 800); return; }
+            whenChartReady(function (ok) {
+              if (!ok) { chartsUnavailable(); return; }
+              cwe_draw_dashboard_charts(d);
+            });
+          })
+          .catch(e => {
+            const el = document.getElementById('dash-generated-at');
+            if (el) el.textContent = 'hata: ' + e.message;
+          });
+      };
 
+      function cwe_draw_dashboard_charts(d) {
             // 1. Trend line
             new Chart(document.getElementById('chart-trend'), {
               type:'line',
@@ -4431,9 +4465,7 @@ setInterval(arRefresh, 300000); // 5 min auto-refresh
               options:{maintainAspectRatio:false, plugins:{legend:{display:false}},
                        scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
             });
-          })
-          .catch(e => { document.getElementById('dash-generated-at').textContent = 'hata: ' + e.message; });
-      };
+      }
       // Dashboard tab açıldığında yükle (R38 v2: ayrı tab)
       document.addEventListener('DOMContentLoaded', () => {
         const checkAndLoad = () => {
