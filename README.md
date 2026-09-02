@@ -1,181 +1,190 @@
-# BlockHarbor — Threat Intelligence Platform
+# BlockHarbor — Tehdit İstihbaratı Platformu
 
-BlockHarbor is a self-hosted threat intelligence platform that sits between public
-threat feeds and the network devices that have to act on them. It ingests IoCs from
-external sources, reduces false positives against warninglists, enriches indicators
-with third-party reputation data, and republishes the result as a firewall-consumable
-blocklist, a TAXII 2.1 collection, and a REST API.
+*[English](README.en.md)*
 
-It exists because the useful part of a blocklist is rarely the raw feed. A feed has to
-be deduplicated, subtracted against a whitelist, aggregated into CIDR blocks a firewall
-can actually hold, tracked back to the source that reported it, and audited when someone
-removes an entry. BlockHarbor does that work and keeps a verifiable record of it.
+BlockHarbor, public tehdit istihbaratı beslemeleriyle bu beslemelere göre aksiyon
+alması gereken ağ cihazları arasında duran, kendi sunucunuzda çalışan bir
+platformdur. Dış kaynaklardan IoC toplar, warninglist'lere karşı yanlış
+pozitifleri azaltır, göstergeleri üçüncü taraf itibar verisiyle zenginleştirir ve
+sonucu güvenlik duvarının tüketebileceği bir blocklist, bir TAXII 2.1 koleksiyonu
+ve bir REST API olarak yeniden yayımlar.
 
-## Features
+Var olma sebebi şu: bir blocklist'in işe yarayan kısmı nadiren ham beslemenin
+kendisidir. Beslemenin tekilleştirilmesi, whitelist'ten çıkarılması, güvenlik
+duvarının gerçekten tutabileceği CIDR bloklarına toplanması, hangi kaynağın
+bildirdiğine kadar izlenebilmesi ve biri bir kaydı sildiğinde bunun
+denetlenebilmesi gerekir. BlockHarbor bu işi yapar ve yaptığının doğrulanabilir
+bir kaydını tutar.
 
-**Distribution**
-- **TAXII 2.1 server** — discovery, api-root, collection and object endpoints, serving
-  IoCs as STIX 2.1 `indicator` objects (`taxii.php`)
-- **REST API** — `stats`, `iocs`, `search`, `export`, `add`, `audit` actions behind an
-  `X-API-Key` header with per-key roles (`api.php`)
-- **Firewall feed** — a flat blocklist rebuilt from every enabled source with whitelist
-  subtraction and atomic writes, ready for a firewall to pull (`lib_firewall_feed.php`)
+## Özellikler
 
-**Ingest**
-- **8 external feeds** — Spamhaus DROP/EDROP, Firehol Level 1, CI Badguys, URLhaus,
-  StevenBlack, MalwareBazaar, USOM (TR-CERT) — with per-source health tracking
-- **CSAF 2.0 fetcher** and **vendor PSIRT RSS** for Cisco, Red Hat, Palo Alto and
-  others, filtered by a configurable vendor watchlist and CVSS floor
-- **ThreatFox** IoC ingestion and **sightings API** for pushing observations from a SIEM
+**Dağıtım**
+- **TAXII 2.1 sunucusu** — discovery, api-root, collection ve object uçları;
+  IoC'ler STIX 2.1 `indicator` nesneleri olarak sunulur (`taxii.php`)
+- **REST API** — `X-API-Key` başlığı arkasında `stats`, `iocs`, `search`,
+  `export`, `add`, `audit` aksiyonları; anahtar başına rol (`api.php`)
+- **Firewall beslemesi** — etkin tüm kaynaklardan yeniden üretilen, whitelist
+  çıkarılmış, atomik yazılan düz blocklist; güvenlik duvarı doğrudan çeker
+  (`lib_firewall_feed.php`)
 
-**Analysis**
-- **Enrichment** — VirusTotal v3, GreyNoise Community, Shodan InternetDB and
-  ipgeolocation.io, each cached on disk with a TTL to stay inside free-tier quotas
-- **IoC pivot** — cross-references an indicator against CVEs, customer assets and
-  Shodan exposure data
-- **Provenance** — every indicator keeps which source reported it, when it was first
-  and last seen, and how many sources agree
-- **CIDR aggregation** — collapses scattered single IPs into `/24` blocks once a
-  configurable threshold is crossed, with a dry-run mode and automatic backup
-- **Warninglists** — RFC 1918, IANA reserved, public DNS resolvers and the Tranco
-  top-10k are checked before an indicator is accepted, to suppress obvious false positives
+**Toplama**
+- **8 dış besleme** — Spamhaus DROP/EDROP, Firehol Level 1, CI Badguys, URLhaus,
+  StevenBlack, MalwareBazaar, USOM (TR-CERT) — kaynak bazlı sağlık takibiyle
+- **CSAF 2.0 çekici** ve **üretici PSIRT RSS** — Cisco, Red Hat, Palo Alto ve
+  diğerleri; yapılandırılabilir üretici listesi ve CVSS eşiğiyle filtrelenir
+- **ThreatFox** IoC alımı ve SIEM'den gözlem göndermek için **sightings API**
 
-**Operations**
-- **Verifiable audit log** — every entry is `sha256(prev_hash + "|" + json)`, forming a
-  hash chain from a fixed genesis. `bin/verify-audit-chain` detects any tampering or
-  deletion in the middle of the log
-- **RBAC** — `admin` / `operator` / `viewer` roles enforced server-side on every mutating
-  endpoint, not only in the UI
-- **Notifications** — email and webhook hooks on blacklist, whitelist, user and feed events
-- **False-positive reporting** and per-source feed health dashboards
+**Analiz**
+- **Zenginleştirme** — VirusTotal v3, GreyNoise Community, Shodan InternetDB ve
+  ipgeolocation.io; her biri ücretsiz kota sınırları içinde kalmak için diskte
+  TTL'li önbellekle
+- **IoC pivot** — bir göstergeyi CVE'ler, müşteri varlıkları ve Shodan maruziyet
+  verisiyle çapraz eşler
+- **Provenance** — her gösterge hangi kaynağın bildirdiğini, ilk ve son ne zaman
+  görüldüğünü, kaç kaynağın hemfikir olduğunu saklar
+- **CIDR agregasyonu** — dağınık tekil IP'leri, yapılandırılabilir bir eşik
+  aşıldığında `/24` bloklara toplar; kuru koşum modu ve otomatik yedekle
+- **Warninglist'ler** — RFC 1918, IANA rezerve, public DNS çözücüler ve Tranco
+  top-10k, bir gösterge kabul edilmeden önce kontrol edilir; bariz yanlış
+  pozitifler bastırılır
 
-## Architecture
+**Operasyon**
+- **Doğrulanabilir denetim kaydı** — her kayıt `sha256(önceki_hash + "|" + json)`
+  biçiminde, sabit bir genesis'ten başlayan bir hash zinciri oluşturur.
+  `verify_audit.php` logun ortasındaki her müdahaleyi veya silmeyi tespit eder
+- **RBAC** — `admin` / `operator` / `viewer` rolleri, sadece arayüzde değil,
+  durum değiştiren her uçta sunucu tarafında zorunlu tutulur
+- **Bildirimler** — blacklist, whitelist, kullanıcı ve besleme olaylarında
+  e-posta ve webhook
+- **Yanlış pozitif raporlama** ve kaynak bazlı besleme sağlığı panelleri
+
+## Mimari
 
 ```
-                        EXTERNAL SOURCES
+                          DIŞ KAYNAKLAR
    Spamhaus · Firehol · URLhaus · USOM · MalwareBazaar · StevenBlack
-   ThreatFox · NVD/KEV · Vendor PSIRT (RSS) · CSAF 2.0 advisories
+   ThreatFox · NVD/KEV · Üretici PSIRT (RSS) · CSAF 2.0 bültenleri
                                │
                                ▼
    ┌───────────────────────────────────────────────────────────────┐
-   │  INGEST            sources_manager · csaf_fetcher             │
-   │                    psirt_rss_fetcher · cve_fetch · threatfox  │
-   │                    api.php (ingest) · sighting.php (SIEM)     │
+   │  TOPLAMA           sources_manager · csaf_fetcher              │
+   │                    psirt_rss_fetcher · cve_fetch · threatfox   │
+   │                    api.php (ingest) · sighting.php (SIEM)      │
    └───────────────────────────────┬───────────────────────────────┘
                                    ▼
    ┌───────────────────────────────────────────────────────────────┐
-   │  NORMALISE & FILTER                                           │
-   │    warninglists  →  RFC1918 · IANA reserved · public DNS      │
-   │                     Tranco top-10k                            │
-   │    whitelist subtraction · dedup · TTL expiry                 │
+   │  NORMALLEŞTİRME & FİLTRELEME                                  │
+   │    warninglist  →  RFC1918 · IANA rezerve · public DNS         │
+   │                    Tranco top-10k                              │
+   │    whitelist çıkarma · tekilleştirme · TTL sona erme           │
    └───────────────────────────────┬───────────────────────────────┘
                                    ▼
    ┌───────────────────────────────────────────────────────────────┐
-   │  STORE           blacklist.txt · lists_dyn/ · lists.json      │
-   │                  blacklist_meta.json  ← provenance per IoC    │
+   │  SAKLAMA         blacklist.txt · lists_dyn/ · lists.json       │
+   │                  blacklist_meta.json  ← IoC başına provenance  │
    └───────────────────────────────┬───────────────────────────────┘
                                    ▼
    ┌───────────────────────────────────────────────────────────────┐
-   │  ENRICH & ANALYSE                                             │
-   │    VirusTotal · GreyNoise · Shodan · ipgeolocation (cached)   │
-   │    ioc_pivot · ioc_provenance · ioc_history                   │
-   │    cidr_aggregate · fp_report · feed_health                   │
+   │  ZENGİNLEŞTİRME & ANALİZ                                      │
+   │    VirusTotal · GreyNoise · Shodan · ipgeolocation (önbellekli)│
+   │    ioc_pivot · ioc_provenance · ioc_history                    │
+   │    cidr_aggregate · fp_report · feed_health                    │
    └───────────────────────────────┬───────────────────────────────┘
                                    ▼
    ┌───────────────────────────────────────────────────────────────┐
-   │  DISTRIBUTE                                                   │
-   │    taxii.php        →  TAXII 2.1 / STIX 2.1  →  TIP, MISP     │
-   │    api.php          →  REST + X-API-Key      →  SOAR, scripts │
-   │    firewall feed    →  flat blocklist        →  FortiGate,    │
-   │                                                 pfSense, F5   │
+   │  DAĞITIM                                                      │
+   │    taxii.php        →  TAXII 2.1 / STIX 2.1  →  TIP, MISP      │
+   │    api.php          →  REST + X-API-Key      →  SOAR, script   │
+   │    firewall feed    →  düz blocklist         →  FortiGate,     │
+   │                                                 pfSense, F5    │
    └───────────────────────────────────────────────────────────────┘
 
-   CROSS-CUTTING
+   KESİŞEN BİLEŞENLER
      blacklist_admin_auth.php  →  RBAC (admin / operator / viewer)
-     audit_log.php             →  sha256 hash-chained audit trail
-     lib_safe_write.php        →  atomic writes (tmp + rename)
-     notify.php                →  email / webhook events
+     audit_log.php             →  sha256 ile zincirlenmiş denetim kaydı
+     lib_safe_write.php        →  atomik yazma (tmp + rename)
+     notify.php                →  e-posta / webhook olayları
 ```
 
-**Stack:** PHP 8.5, PostgreSQL (auth/audit in the `archive/blockharbor-modern` branch),
-Apache, Docker. No framework — deliberately, so the deployment surface stays small
-enough to audit.
+**Yığın:** PHP 8.5, PostgreSQL (kimlik doğrulama ve denetim
+`archive/blockharbor-modern` dalında), Apache, Docker. Framework yok — kurulum
+yüzeyi denetlenebilir kalsın diye bilinçli bir tercih.
 
-## Screenshots
+## Ekran görüntüleri
 
-Taken from the [live demo](https://altanmelihhh-web.github.io/BlockHarbor/); the
-data is synthetic.
+[Canlı demodan](https://altanmelihhh-web.github.io/BlockHarbor/) alınmıştır;
+veriler sentetiktir.
 
-**Blocklist** — per-list sidebar with live counts, indicators enriched with
-country, ASN and confidence, TLP tagging and inline expansion for provenance.
+**Blocklist** — canlı sayılarla liste kenar çubuğu, ülke/ASN/güven skoruyla
+zenginleştirilmiş göstergeler, TLP etiketleme ve provenance için satır içi açılım.
 
-![Blocklist view](docs/screenshots/01-blacklist.jpg)
+![Blocklist görünümü](docs/screenshots/01-blacklist.jpg)
 
-**Dashboard** — 30-day ingestion trend, indicator-type and TLP distribution, and
-per-source contribution.
+**Dashboard** — 30 günlük alım trendi, gösterge tipi ve TLP dağılımı, kaynak
+bazlı katkı.
 
 ![Dashboard](docs/screenshots/02-dashboard.jpg)
 
-**Feed health** — per-source fetch status, extracted counts, age and the pull
-command a firewall would use against the published feed.
+**Besleme sağlığı** — kaynak bazlı çekme durumu, çıkarılan kayıt sayısı, yaş ve
+bir güvenlik duvarının yayımlanan beslemeye karşı kullanacağı çekme komutu.
 
-![Feed health](docs/screenshots/03-feed-health.jpg)
+![Besleme sağlığı](docs/screenshots/03-feed-health.jpg)
 
-**Audit chain verification** — recomputes the `sha256(prev_hash + "|" + json)`
-chain over the whole log and reports the first break if there is one. Also
-available as JSON for monitoring, and as a CLI exit code.
+**Denetim zinciri doğrulama** — tüm log üzerinde
+`sha256(önceki_hash + "|" + json)` zincirini yeniden hesaplar ve varsa ilk
+kırılmayı raporlar. İzleme için JSON, betikler için CLI çıkış kodu olarak da
+kullanılabilir.
 
-![Audit chain verification](docs/screenshots/04-audit-chain.jpg)
+![Denetim zinciri doğrulama](docs/screenshots/04-audit-chain.jpg)
 
-## Live demo
+## Canlı demo
 
-**[altanmelihhh-web.github.io/BlockHarbor](https://altanmelihhh-web.github.io/BlockHarbor/)** · [mirror](https://altanmelihhh-web.github.io/blockharbor-demo/)
+**[altanmelihhh-web.github.io/BlockHarbor](https://altanmelihhh-web.github.io/BlockHarbor/)** · [ayna](https://altanmelihhh-web.github.io/blockharbor-demo/)
 
 | | |
 |---|---|
-| Data | synthetic — RFC 5737 addresses only, unassigned CVE identifiers |
-| Writes | disabled |
-| Backend | none — see below |
+| Veri | sentetik — yalnızca RFC 5737 adresleri, atanmamış CVE numaraları |
+| Yazma | devre dışı |
+| Arka uç | yok — aşağıya bakın |
 
-The published demo is a static snapshot. `bin/build-static-demo.sh` boots the
-real application in demo mode, captures the read-only pages and every JSON
-response the dashboard asks for, then injects a shim that answers `fetch()` from
-those captures. A GitHub Actions workflow rebuilds it on every push to `main`,
-so the snapshot cannot drift from the code.
+Yayındaki demo statik bir anlık görüntüdür. `bin/build-static-demo.sh` gerçek
+uygulamayı demo modunda ayağa kaldırır, salt-okunur sayfaları ve arayüzün
+istediği tüm JSON yanıtlarını yakalar, sonra `fetch()` çağrılarını bu yakalanmış
+yanıtlara yönlendiren bir katman enjekte eder. Bir GitHub Actions iş akışı
+`main`'e her push'ta yeniden üretir; böylece anlık görüntü koddan sapamaz.
 
-The trade is deliberate: a snapshot loads instantly and stays up, where a free
-container would cold-start for the better part of a minute on the first visit.
-Navigation, enrichment, provenance, pivots and chain verification all show real
-captured output; an arbitrary lookup that was not captured says so.
+Bu bilinçli bir tercih: anlık görüntü anında açılır ve ayakta kalır; ücretsiz bir
+konteyner ise ilk ziyarette yaklaşık bir dakika soğuk başlangıç yapardı.
+Gezinme, zenginleştirme, provenance, pivot ve zincir doğrulama gerçek yakalanmış
+çıktıyı gösterir; yakalanmamış bir sorgu bunu açıkça söyler.
 
-`render.yaml` is also included for anyone who wants the full dynamic
-application — Render blueprint, free plan, `demo`/`demo`.
+Tam dinamik uygulamayı çalıştırmak isteyenler için `render.yaml` da dahildir —
+Render blueprint, ücretsiz plan, `demo` / `demo`.
 
-Demo mode is switched on with `DEMO_MODE=true` and is enforced by
-`demo_mode.php`, which PHP loads ahead of every request via `auto_prepend_file`.
-Doing it at the front door rather than per endpoint is deliberate: a handful of
-scripts in this codebase ship without an auth check of their own, so an
-entry-point gate is the only way to be sure nothing was missed.
+Demo modu `DEMO_MODE=true` ile açılır ve PHP'nin her isteğin önüne
+`auto_prepend_file` ile yüklediği `demo_mode.php` tarafından uygulanır. Bunun uç
+bazlı değil giriş kapısında yapılması bilinçlidir: bu kod tabanındaki birkaç
+betik kendi kimlik doğrulaması olmadan gelir, dolayısıyla hiçbir şeyin
+atlanmadığından emin olmanın tek yolu giriş noktasındaki bir kapıdır.
 
-What the flag changes:
+Bayrağın değiştirdikleri:
 
-- **Read-only.** Anything other than `GET`/`HEAD` is refused, except the login
-  and logout forms. Scripts that mutate state on `GET` — migrations, feed
-  fetchers, user management — are refused outright.
-- **No admin account.** `login.php` accepts only `demo`/`demo` as a viewer, and
-  `auth_config.php` generates an unusable random hash instead of the
-  `admin`/`admin` fallback, so the default credentials cannot work.
-- **No outbound calls.** VirusTotal, GreyNoise, Shodan and the geolocation
-  provider return deterministic stub responses; nothing leaves the container.
-- **No scheduled jobs.** The feed-fetch cron is not installed.
-- **A banner** on every HTML page. JSON and TAXII responses are left untouched.
-- **A fresh dataset on every boot**, generated by `bin/seed-demo.php`.
+- **Salt okunur.** `GET`/`HEAD` dışındaki her şey reddedilir; istisna giriş ve
+  çıkış formlarıdır. `GET` ile durum değiştiren betikler — migrasyonlar, besleme
+  çekiciler, kullanıcı yönetimi — doğrudan reddedilir.
+- **Admin hesabı yok.** `login.php` yalnızca `demo`/`demo`'yu viewer olarak kabul
+  eder; `auth_config.php` ise `admin`/`admin` yedeği yerine kullanılamaz rastgele
+  bir hash üretir, yani varsayılan kimlik bilgileri çalışamaz.
+- **Dışarıya çağrı yok.** VirusTotal, GreyNoise, Shodan ve coğrafi konum
+  sağlayıcısı deterministik sahte yanıt döner; konteynerden hiçbir şey çıkmaz.
+- **Zamanlanmış iş yok.** Besleme çekme cron'u kurulmaz.
+- **Her HTML sayfada bir bant.** JSON ve TAXII yanıtlarına dokunulmaz.
+- **Her açılışta taze veri seti**, `bin/seed-demo.php` tarafından üretilir.
 
-Mount point is configurable with `CWE_BASE_PATH` — `/` for the demo, and the
-historical `/blacklist/cyberwebeyeos` remains the default for existing
-deployments.
+Mount noktası `CWE_BASE_PATH` ile yapılandırılabilir — demo için `/`, mevcut
+kurulumlar için varsayılan olarak eski `/blacklist/cyberwebeyeos` yolu.
 
-Run it locally:
+Yerelde çalıştırmak için:
 
 ```bash
 DEMO_MODE=true CWE_BASE_PATH=/ docker compose up --build
@@ -183,9 +192,9 @@ DEMO_MODE=true CWE_BASE_PATH=/ docker compose up --build
 
 ---
 
-## Quick Start
+## Hızlı başlangıç
 
-### Step 1 — Install Docker (if not already installed)
+### Adım 1 — Docker kurulumu (kurulu değilse)
 
 ```bash
 # Ubuntu / Debian
@@ -193,7 +202,7 @@ sudo apt install docker.io docker-compose-v2 -y
 sudo systemctl enable --now docker
 ```
 
-### Step 2 — Run
+### Adım 2 — Çalıştırma
 
 ```bash
 git clone https://github.com/altanmelihhh-web/BlockHarbor.git
@@ -201,69 +210,77 @@ cd BlockHarbor
 bash bin/docker-up.sh
 ```
 
-The script:
-- Creates `.env` from `.env.example` automatically
-- Seeds runtime state (`users.json`, `whitelist.txt`, ...) from the shipped
-  `*.example` templates on first boot
-- Detects port conflicts and prompts for a different port if needed
-- Builds the image and starts the container
+Betik şunları yapar:
+- `.env` dosyasını `.env.example`'dan otomatik oluşturur
+- Çalışma zamanı durumunu (`users.json`, `whitelist.txt`, ...) ilk açılışta
+  paketle gelen `*.example` şablonlarından üretir
+- Port çakışmalarını tespit eder ve gerekirse farklı bir port sorar
+- İmajı derler ve konteyneri başlatır
 
-Access at: **http://localhost:8090/blacklist/cyberwebeyeos/**
+Erişim: **http://localhost:8090/blacklist/cyberwebeyeos/**
 
-Default login: `admin` / `admin` — change your password immediately after first login.
+Varsayılan giriş: `admin` / `admin` — ilk girişten hemen sonra parolanızı
+değiştirin.
 
-> **Non-interactive / CI:** `bash bin/docker-up.sh --auto-port` (skips prompts, auto-picks next free port)
+> **Etkileşimsiz / CI:** `bash bin/docker-up.sh --auto-port` (soru sormaz, ilk
+> boş portu kendi seçer)
 
 ---
 
-## Configuration
+## Yapılandırma
 
-Copy `.env.example` to `.env` and set:
+`.env.example` dosyasını `.env` olarak kopyalayıp şunları ayarlayın:
 
-| Variable | Description |
+| Değişken | Açıklama |
 |---|---|
-| `HTTP_PORT` | Host port (default: 8090) |
-| `CWE_ADMIN_USERNAME` | Admin username (default: admin) |
-| `CWE_ADMIN_PASSWORD_HASH` | bcrypt hash of admin password |
-| `CWE_VT_API_KEY` | VirusTotal v3 API key (optional) |
-| `CWE_GREYNOISE_API_KEY` | GreyNoise community key (optional, 50/day) |
-| `CWE_IPGEOLOCATION_API_KEY` | ipgeolocation.io key (optional) |
-| `CWE_API_KEYS` | JSON array of REST API keys (optional) |
+| `HTTP_PORT` | Host portu (varsayılan: 8090) |
+| `CWE_ADMIN_USERNAME` | Admin kullanıcı adı (varsayılan: admin) |
+| `CWE_ADMIN_PASSWORD_HASH` | Admin parolasının bcrypt hash'i |
+| `CWE_BASE_PATH` | Uygulamanın sunulduğu yol (varsayılan: `/blacklist/cyberwebeyeos`) |
+| `CWE_VT_API_KEY` | VirusTotal v3 API anahtarı (opsiyonel) |
+| `CWE_GREYNOISE_API_KEY` | GreyNoise community anahtarı (opsiyonel, 50/gün) |
+| `CWE_IPGEOLOCATION_API_KEY` | ipgeolocation.io anahtarı (opsiyonel) |
+| `CWE_API_KEYS` | REST API anahtarlarının JSON dizisi (opsiyonel) |
+| `CWE_USOM_BASE` | Ayrı USOM senkronizasyon servisinin yolu (opsiyonel) |
+| `DEMO_MODE` | Salt-okunur public demo modu (varsayılan: `false`) |
 
-### Runtime state files
+### Çalışma zamanı durum dosyaları
 
-These hold credentials and operational data, so they are **gitignored** and only
-their templates ship with the repo. One command creates them, along with the
-writable files and directories the application appends to but will not create
-itself:
+Bu dosyalar kimlik bilgisi ve operasyonel veri tutar; bu yüzden
+**gitignore'dadır** ve depoyla yalnızca şablonları gelir. Tek komut hem bunları
+hem de uygulamanın yazdığı ama kendisi oluşturmadığı dosya ve dizinleri kurar:
 
 ```bash
 sh bin/init-state.sh
 ```
 
-The Docker entrypoint runs the same script, so container and native installs
-bootstrap identically. It is idempotent — existing files are left alone.
+Docker entrypoint'i de aynı betiği çalıştırır, böylece konteyner ve çıplak
+kurulum birebir aynı şekilde başlar. Betik idempotenttir — var olan dosyalara
+dokunmaz.
 
-Never commit these files back — they are excluded in `.gitignore` on purpose.
+Bu dosyaları asla geri commit etmeyin; `.gitignore` içinde bilinçli olarak hariç
+tutulmuşlardır.
 
-Generate a password hash:
+Parola hash'i üretmek için:
 ```bash
-docker compose exec app php -r "echo password_hash('yourpassword', PASSWORD_BCRYPT) . PHP_EOL;"
+docker compose exec app php -r "echo password_hash('parolaniz', PASSWORD_BCRYPT) . PHP_EOL;"
 ```
 
-## Data Persistence
+## Veri kalıcılığı
 
-All runtime data (feeds, blacklist, state files) is stored in the `cwe_data` Docker named volume. It survives container restarts.
+Tüm çalışma zamanı verisi (beslemeler, blacklist, durum dosyaları) `cwe_data`
+adlı Docker volume'ünde saklanır ve konteyner yeniden başlatmalarında korunur.
 
-To reset all data:
+Tüm veriyi sıfırlamak için:
 ```bash
 docker compose down -v
 bash bin/docker-up.sh
 ```
 
-## Scheduled Jobs (Cron)
+## Zamanlanmış işler (cron)
 
-Feed fetching and CVE sync are defined in `cron/cyberwebeyeos-tip`. To install on the host:
+Besleme çekme ve CVE senkronizasyonu `cron/cyberwebeyeos-tip` içinde tanımlıdır.
+Host üzerine kurmak için:
 
 ```bash
 sudo cp cron/cyberwebeyeos-tip /etc/cron.d/cyberwebeyeos-tip
@@ -272,22 +289,24 @@ sudo systemctl reload cron
 
 ## REST API
 
-Pass `X-API-Key: <key>` header. Keys are configured via `CWE_API_KEYS` env var.
+`X-API-Key: <anahtar>` başlığı gönderin. Anahtarlar `CWE_API_KEYS` ortam
+değişkeniyle yapılandırılır.
 
 ```bash
-curl -H "X-API-Key: your-key" http://localhost:8090/blacklist/cyberwebeyeos/api.php?action=list
+curl -H "X-API-Key: anahtariniz" http://localhost:8090/blacklist/cyberwebeyeos/api.php?action=list
 ```
 
 ## TAXII 2.1
 
-Discovery endpoint: `GET /blacklist/cyberwebeyeos/taxii2/`
+Discovery ucu: `GET /blacklist/cyberwebeyeos/taxii2/`
 
-## Production Notes
+## Üretim notları
 
-- Run behind a reverse proxy (nginx/caddy) that terminates TLS
-- Rotate `CWE_API_KEYS` before exposing to external clients
-- Set `CWE_ADMIN_PASSWORD_HASH` to a strong bcrypt hash in `.env`
+- TLS'i sonlandıran bir ters vekil (nginx/caddy) arkasında çalıştırın
+- Dış istemcilere açmadan önce `CWE_API_KEYS` anahtarlarını değiştirin
+- `.env` içinde `CWE_ADMIN_PASSWORD_HASH` değerini güçlü bir bcrypt hash'i yapın
+- Public bir adreste `DEMO_MODE` değerini asla `false` bırakmayın
 
-## License
+## Lisans
 
-MIT — see [LICENSE](LICENSE).
+MIT — bkz. [LICENSE](LICENSE).
